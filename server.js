@@ -19,9 +19,8 @@ app.use(cookieParser());
 app.use(
   cors({
     origin: [
-      "https://thrifftify-frontend-lu40meyew-10digitminds-projects.vercel.app",
+      "https://thrifftify-frontend-njpbrsoxp-10digitminds-projects.vercel.app",
       "http://localhost:3000",
-      "https://thrifftify-fronend.vercel.app",
       "https://thrifftify-backend.onrender.com"
     ],
     credentials: true,
