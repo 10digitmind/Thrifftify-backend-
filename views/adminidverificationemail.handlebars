@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>ID Verification Request</title>
+  <style>
+    .head-con {
+      width: 100%;
+      height: 40px;
+      background-color: green;
+      color: white;
+      font-family: Arial, Helvetica, sans-serif;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+    }
+
+    h2 {
+      color: white;
+    }
+
+    section {
+      font-family: Arial, Helvetica, sans-serif;
+      margin: 20px;
+    }
+
+    p {
+      line-height: 1.6;
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <div class="head-con">
+      <h2 class="head">Thriftify</h2>
+    </div>
+  </header>
+  <section>
+    <h2>Hello,</h2>
+    <p>
+      This is an ID verification request from one of our users. Below are the details required for verification:
+    </p>
+     <p><strong>custormer name :</strong> {{name}}</p>
+    <p><strong>NIN Number:</strong> {{ninNumber}}</p>
+    <p><strong>Date of Birth:</strong> {{dob}}</p>
+    <p>Please find below an image of the customer holding today's date for verification purposes:</p>
+    <img src="cid:image@nodemailer.com" alt="Customer Verification Image"/>
+    <p>
+      Kindly review these details and verify the user as soon as possible.
+    </p>
+    <p>
+      Best regards,<br />
+      The Thriftify Team
+    </p>
+  </section>
+</body>
+</html>

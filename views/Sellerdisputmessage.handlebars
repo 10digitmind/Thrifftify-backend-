@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Dispute Notification</title>
+  <style>
+    .head-con {
+      width: 100%;
+      height: 40px;
+      background-color: green;
+      color: white;
+      font-family: Arial, Helvetica, sans-serif;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+    }
+    body {
+      font-family: Arial, Helvetica, sans-serif;
+      margin: 0;
+      padding: 20px;
+    }
+    section {
+      padding: 20px;
+    }
+    p {
+      line-height: 1.6;
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <div class="head-con">
+      <h2 class="head">Thriftify</h2>
+    </div>
+  </header>
+  <section>
+    <h2>Hello {{name}},</h2>
+    <p>
+      We regret to inform you that the item {{itemname}} (Item ID: {{orderid}}) you sold has been placed under dispute by the buyer. This dispute will be investigated based on the evidence provided by both parties. Our representative may reach out to you for additional information if necessary.
+    </p>
+    <p>
+      Please be assured that we strive to resolve disputes fairly and impartially. If the investigation determines that you are not at fault, you will receive the appropriate credit. Conversely, if the buyer's claim is substantiated, a refund will be issued to the buyer, and no credit will be provided to you.
+    </p>
+    <p>
+      We apologize for any inconvenience this may cause and appreciate your cooperation throughout this process. We will keep you updated with any developments.
+    </p>
+    <p>
+      Kind regards,<br />
+      The Thriftify Team
+    </p>
+  </section>
+</body>
+</html>

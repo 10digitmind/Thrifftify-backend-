@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Thriftify Purchase Notification</title>
+    <style>
+        .head-con {
+            width: 100%;
+            height: 40px;
+            background-color: green;
+            color: white;
+            font-family: Arial, Helvetica, sans-serif;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+        body {
+            font-family: Arial, Helvetica, sans-serif;
+            margin: 0;
+            padding: 20px;
+        }
+        section {
+            padding: 20px;
+        }
+        p {
+            line-height: 1.6;
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <div class="head-con">
+            <h2 class="head">Thriftify</h2>
+        </div>
+    </header>
+    <section>
+        <h2>Hello {{sellername}},</h2>
+        <p>
+            Congratulations! Your item "{{itemname}}" has been successfully purchased by {{buyername}}. Please ensure that you dispatch the item to the buyer’s address {{buyeraddress}} within the next 2-3 days.
+        </p>
+        <p>
+            To ensure a smooth transaction, please make sure the item is clean, ironed if necessary, and in good condition to minimize the risk of complaints or refund requests. The delivery driver can contact the buyer at {{phonenumber}} if needed.
+        </p>
+        <p>
+             Take a picture as an evidence of when you're sending the item , once dispatched  kindly submit the delivery details using the following link:
+            <a href="{{deliveryformurl}}" target="_blank">Delivery Form</a>
+        </p>
+        <p>
+            You will receive {{itemprice}} upon confirmation that the buyer has received the item.
+        </p>
+        <p>
+            Kind regards,<br />
+            The Thriftify Team
+        </p>
+    </section>
+</body>
+</html>

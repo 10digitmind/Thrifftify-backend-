@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Document</title>
+  </head>
+  <style>
+.head-con{
+  width: 100%;
+  height: 40px;
+  background-color: green;
+  color: white;
+  font-family: Arial, Helvetica, sans-serif;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+h2{
+  color:'red'
+}
+  </style>
+  <body>
+    <header>
+      <div class="head-con">
+      <h2 class="head">Thriftify</h2>
+      </div>
+      </div>
+    </header>
+    <section>
+        <h2> hello {{buyername}}</h2>
+      <p>
+     This is to notify you that your order <b>{{orderid}}</b> ,  itemname <b>{{itemname}} </b>has been sent using this delivery company<b>{{deliverycompany}}</b>  on <b>{{sentdate}} </b>and the possible delivery date is <b>{{deliverydate}} </b>
+      </p>
+      <P>Here is some additional info for your delivery:</P>
+      <h2>{{otherinfo}}</h2>
+     <P>Once your item has been delivered please comfirm delivery using this <a href={{link}}>Confirm delivery </a> The delivery need to be confirmed for seller to received their money , if seller can prove the item has been delivered we will give their money after thourough investigation has been conducted. Please kindly confirm the delivery once you've received the item to cause no hassel for anyone </P>
+
+     <p>below is an image evidence for when your item was sent </p>
+       <img src="cid:image@nodemailer.com"/>
+        <p>
+      Kind regards,<br />
+      The Thriftify Team
+    </p>
+    </section>
+  </body>
+</html>

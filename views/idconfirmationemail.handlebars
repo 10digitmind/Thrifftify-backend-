@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>ID Verification Notification</title>
+  <style>
+    .head-con {
+      width: 100%;
+      height: 40px;
+      background-color: green;
+      color: white;
+      font-family: Arial, Helvetica, sans-serif;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+    }
+
+    h2 {
+      color: white;
+    }
+
+    section {
+      font-family: Arial, Helvetica, sans-serif;
+      margin: 20px;
+    }
+
+    p {
+      line-height: 1.6;
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <div class="head-con">
+      <h2 class="head">Thriftify</h2>
+    </div>
+  </header>
+  <section>
+    <h2>Congratulations {{name}},</h2>
+    <p>
+      This is to notify you that your ID verification has been successful. You can now buy, shop, and enjoy our website.
+    </p>
+    <p>
+      You can log into your account by clicking <a href="{{link}}">here</a>.
+    </p>
+    <p>
+      Kind regards,<br />
+      The Thriftify Team
+    </p>
+  </section>
+</body>
+</html>
