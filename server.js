@@ -1,52 +1,66 @@
 const express = require("express");
-const dontenv = require("dotenv").config();
+const dotenv = require("dotenv").config();
 const mongoose = require("mongoose");
-const cookieparser = require("cookie-parser");
+const cookieParser = require("cookie-parser");
 const errorHandler = require("./middlerware/errormiddleware/errormiddleware.js");
-const http = require("http");
-const app = express();
+const path = require("path");
+const { engine } = require("express-handlebars");
 const cors = require("cors");
 const groute = require("./route/Groutes.js");
-const WebSocket = require("ws");
-const url = require("url");
-const { engine } = require('express-handlebars');
-const path = require('path');
 
+const app = express();
 
+// Middleware
 app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
-app.use(errorHandler);
-app.use(cookieparser());
+app.use(cookieParser());
 
-app.engine('handlebars', engine());
-app.set('view engine', 'handlebars');
-app.set('views', path.join(__dirname, 'views'));
-
+// CORS Configuration
 app.use(
   cors({
-    allowedHeaders: ["Content-Type", "Authorization"],
     origin: [
-
       "https://thrifftify-frontend-lu40meyew-10digitminds-projects.vercel.app",
       "http://localhost:3000",
-      'https://thrifftify-fronend.vercel.app',
-      'https://thrifftify-backend.onrender.com'
+      "https://thrifftify-fronend.vercel.app",
     ],
     credentials: true,
-    allowMethods: ["GET", "POST", "PUT", "DELETE"],
+    methods: ["GET", "POST", "PUT", "DELETE"],
+    allowedHeaders: ["Content-Type", "Authorization"],
   })
 );
 
+// View Engine
+app.engine("handlebars", engine());
+app.set("view engine", "handlebars");
+app.set("views", path.join(__dirname, "views"));
+
+// Default Route
+app.get("/", (req, res) => {
+  res.send("Welcome to Thrifftify Backend API!");
+});
+
+// Routes
 app.use(groute);
 
+// Error Handler
+app.use(errorHandler);
+
+// 404 Middleware
+app.use((req, res, next) => {
+  res.status(404).json({ message: "Route not found" });
+});
+
+// MongoDB Connection and Server Start
 const PORT = process.env.PORT || 3500;
 mongoose
-  .connect(process.env.MONGO_URL)
+  .connect(process.env.MONGO_URL, { useNewUrlParser: true, useUnifiedTopology: true })
   .then(() => {
+    console.log("Connected to MongoDB");
     app.listen(PORT, () => {
-      console.log(`server running on port ${PORT}`);
+      console.log(`Server running on port ${PORT}`);
     });
   })
   .catch((error) => {
-    console.log(error);
+    console.error("Database connection error:", error.message);
   });
+  
