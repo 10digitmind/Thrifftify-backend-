@@ -22,6 +22,7 @@ app.use(
       "https://thrifftify-frontend-lu40meyew-10digitminds-projects.vercel.app",
       "http://localhost:3000",
       "https://thrifftify-fronend.vercel.app",
+      "https://thrifftify-backend.onrender.com"
     ],
     credentials: true,
     methods: ["GET", "POST", "PUT", "DELETE"],
@@ -63,4 +64,3 @@ mongoose
   .catch((error) => {
     console.error("Database connection error:", error.message);
   });
-  
