@@ -92,7 +92,7 @@ router.post("/api/users/register", createUser);
 router.post("/api/users/login", loginUser);
 
 //log out user
-router.get("/api/users/logout", logoutUser);
+router.get("/api/users/logout",protect, logoutUser);
 //getUser
 router.get("/api/users/getuser", getUser);
 //update user

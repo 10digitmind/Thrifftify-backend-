@@ -471,13 +471,26 @@ const logoutUser = asyncHandler(async (req, res) => {
 
 //getUser
 const getUser = asyncHandler(async (req, res) => {
-  const user = await User.findById(req.user._id);
+  try {
+    console.log("getUser route hit");
 
-  if (user) {
+    if (!req.user || !req.user._id) {
+      console.error("req.user._id is undefined");
+      res.status(400).json({ message: "User not authenticated" });
+      return;
+    }
+
+    const user = await User.findById(req.user._id).select('-password');
+    console.log("User fetched:", user);
+
+    if (!user) {
+      res.status(404).json({ message: "User not found" });
+      return;
+    }
+
     const {
       id,
       email,
-      password,
       photo,
       role,
       isVerified,
@@ -495,7 +508,7 @@ const getUser = asyncHandler(async (req, res) => {
       totalWithdrawalAmount,
       pendingPurchasedAmount,
       userAgent,
-      verificationRequested
+      verificationRequested,
     } = user;
 
     res.status(200).json({
@@ -504,7 +517,6 @@ const getUser = asyncHandler(async (req, res) => {
       lastname,
       location,
       email,
-      password,
       photo,
       role,
       isVerified,
@@ -519,13 +531,17 @@ const getUser = asyncHandler(async (req, res) => {
       totalWithdrawalAmount,
       pendingPurchasedAmount,
       userAgent,
-      verificationRequested
+      verificationRequested,
     });
-  } else {
-    res.status(400);
-    throw new Error("User not found");
+
+    console.log("User response sent successfully");
+  } catch (error) {
+    console.error("Error in getUser:", error);
+    res.status(500).json({ message: error.message });
   }
 });
+
+
 
 //update user
 const updateUser = asyncHandler(async (req, res) => {
