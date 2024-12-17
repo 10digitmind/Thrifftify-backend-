@@ -945,14 +945,26 @@ const getAllApprovedgoods = asyncHandler(async (req, res) => {
 
 //get all goods
 const getAllgoods = asyncHandler(async (req, res) => {
-  const good = await Good.find({ purchased: false });
-  const users = await User.find();
+  try {
+    // Ensure the user is authenticated
+    const userId = req.user.id; // This assumes you're using an auth middleware to attach user to req
 
-  if (!good || good.length === 0) {
-    return res.status(404).json({ message: "No good available" });
+    // Fetch goods that are not purchased and not from the current user
+    const goods = await Good.find({
+      purchased: false,
+      "sellerdetails.sellerid": { $ne: userId }, // Exclude goods where sellerid matches current user
+    });
+
+    // Check if goods exist
+    if (!goods || goods.length === 0) {
+      return res.status(404).json({ message: "No goods available" });
+    }
+
+    res.status(200).json(goods);
+  } catch (error) {
+    console.error("Error fetching goods:", error);
+    res.status(500).json({ message: "Server error while fetching goods" });
   }
-
-  res.status(200).json(good);
 });
 
 //get all goods by user
