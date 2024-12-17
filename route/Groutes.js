@@ -149,7 +149,7 @@ router.get("/api/users/getallgoodsbyuser", protect, getAllgoodsbyUser);
 
 
 //get all goods
-router.get("/api/users/getallgoods",protect, getAllgoods);
+router.get("/api/users/getallgoods", getAllgoods);
 
 //update users goods
 router.patch(
