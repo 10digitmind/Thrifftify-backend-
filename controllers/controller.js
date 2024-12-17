@@ -947,7 +947,7 @@ const getAllApprovedgoods = asyncHandler(async (req, res) => {
 const getAllgoods = asyncHandler(async (req, res) => {
   try {
     // Ensure the user is authenticated
-    const userId = req.user.id; // This assumes you're using an auth middleware to attach user to req
+    const userId = req.user._id; // This assumes you're using an auth middleware to attach user to req
 
     // Fetch goods that are not purchased and not from the current user
     const goods = await Good.find({
