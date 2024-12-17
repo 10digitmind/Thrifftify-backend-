@@ -148,8 +148,6 @@ router.get(
 router.get("/api/users/getallgoodsbyuser", protect, getAllgoodsbyUser);
 
 
-
-
 //get all goods
 router.get("/api/users/getallgoods", getAllgoods);
 

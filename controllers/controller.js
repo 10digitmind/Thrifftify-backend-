@@ -954,7 +954,7 @@ const getAllgoods = asyncHandler(async (req, res) => {
       purchased: false,
       "sellerdetails.sellerid": { $ne: userId }, // Exclude goods where sellerid matches current user
     });
-
+console.log('this is goods:',goods)
     // Check if goods exist
     if (!goods || goods.length === 0) {
       return res.status(404).json({ message: "No goods available" });
