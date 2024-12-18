@@ -472,8 +472,7 @@ const logoutUser = asyncHandler(async (req, res) => {
 //getUser
 const getUser = asyncHandler(async (req, res) => {
   try {
-    console.log("getUser route hit");
-
+  
     if (!req.user || !req.user._id) {
       console.error("req.user._id is undefined");
       res.status(400).json({ message: "User not authenticated" });
@@ -481,7 +480,7 @@ const getUser = asyncHandler(async (req, res) => {
     }
 
     const user = await User.findById(req.user._id).select('-password');
-    console.log("User fetched:", user);
+   
 
     if (!user) {
       res.status(404).json({ message: "User not found" });
@@ -2189,6 +2188,7 @@ const {name,email,phonenumber,message} =req.body
     );
     
     res.status(200).json({ success: 'Message received and email sent successfully!' });
+    console.log('email sent ')
 
   } catch (error) {
     res.status(500).json({ error: error.message });
