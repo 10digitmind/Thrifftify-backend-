@@ -2165,34 +2165,34 @@ const productsearchbycategory = asyncHandler(async (req, res) => {
 });
 
 const messageUs = asyncHandler(async (req, res) => {
-const {name,email,phonenumber,message} =req.body
-  try {
-    if(!name || !email || !phonenumber || !message){
-      return res.status(400).json({ error: 'please fill in the required field' });
-    }
-    const sendFrom = process.env.EMAIL_USER
-    const sendTo = 'olubodekehinde2019@gmail.com'
-    const template = 'messageus.'
+// const {name,email,phonenumber,message} =req.body
+//   try {
+//     if(!name || !email || !phonenumber || !message){
+//       return res.status(400).json({ error: 'please fill in the required field' });
+//     }
+//     const sendFrom = process.env.EMAIL_USER
+//     const sendTo = 'olubodekehinde2019@gmail.com'
+//     const template = 'messageus.'
 
-    await contactUs(
-      'New Contact Us Message',
-      sendTo,
-      sendFrom,
-      null,
-      null, 
-      template,
-      name,
-      message,
-      phonenumber,
-      email
-    );
+//     await contactUs(
+//       'New Contact Us Message',
+//       sendTo,
+//       sendFrom,
+//       null,
+//       null, 
+//       template,
+//       name,
+//       message,
+//       phonenumber,
+//       email
+//     );
     
-    res.status(200).json({ success: 'Message received and email sent successfully!' });
-    console.log('email sent ')
+//     res.status(200).json({ success: 'Message received and email sent successfully!' });
+//     console.log('email sent ')
 
-  } catch (error) {
-    res.status(500).json({ error: error.message });
-  }
+//   } catch (error) {
+//     res.status(500).json({ error: error.message });
+//   }
 });
 
 
