@@ -153,37 +153,37 @@ const loginUser = asyncHandler(async (req, res) => {
   }
 
   //triger 2fa
-  // const ua = parser(req.headers["user-agent"]);
+  const ua = parser(req.headers["user-agent"]);
 
-  // const currentUserAgent = [ua.ua];
+  const currentUserAgent = [ua.ua];
 
-  // const allowedAgent = user.userAgent.includes(currentUserAgent);
+  const allowedAgent = user.userAgent.includes(currentUserAgent);
 
-  // if (!allowedAgent) {
-  //   //gereate 6digit code
-  //   const loginCode = Math.floor(100000 + Math.random() * 90000);
+  if (!allowedAgent) {
+    //gereate 6digit code
+    const loginCode = Math.floor(100000 + Math.random() * 90000);
   
 
-  //   // ecyrpt login code before saving database
-  //   const encryptedLoginCode = cryptr.encrypt(loginCode.toString());
+    // ecyrpt login code before saving database
+    const encryptedLoginCode = cryptr.encrypt(loginCode.toString());
 
-  //   // Delete existing reset password token if it exists
-  //   let userToken = await Token.findOne({ userId: user._id });
-  //   if (userToken) {
-  //     await userToken.deleteOne();
-  //   }
-  //   //SAVETOKEN
+    // Delete existing reset password token if it exists
+    let userToken = await Token.findOne({ userId: user._id });
+    if (userToken) {
+      await userToken.deleteOne();
+    }
+    //SAVETOKEN
 
-  //   await new Token({
-  //     userId: user._id,
-  //     loginToken: encryptedLoginCode,
-  //     createdAt: Date.now(),
-  //     expiresAt: Date.now() + 60 * (60 * 1000),
-  //   }).save();
+    await new Token({
+      userId: user._id,
+      loginToken: encryptedLoginCode,
+      createdAt: Date.now(),
+      expiresAt: Date.now() + 60 * (60 * 1000),
+    }).save();
 
-  //   res.status(401).json(
-  //     "New device or browser detected" );
-  // }
+    res.status(401).json(
+      "New device or browser detected" );
+  }
   // generate token
 
   const token = generateToken(user._id);
@@ -807,44 +807,80 @@ const resetPassword = asyncHandler(async (req, res) => {
 
 //change password
 const changePassword = asyncHandler(async (req, res) => {
-  const { password, newpassword, cpassword } = req.body;
+  try {
+    const { password, newpassword, cpassword } = req.body;
 
-  const user = await User.findById(req.user._id);
+    // Fetch user by ID
+    const user = await User.findById(req.user._id);
 
-  if (!user) {
-    res.status(400);
-    throw new Error("user not found ");
-  }
+    if (!user) {
+      res.status(400);
+      throw new Error("User not found");
+    }
 
-  if (!password || !newpassword) {
-    res.status(404).json("Enter old and new password  ");
-  }
+    if (!password || !newpassword) {
+      return res.status(400).json({ message: "Enter old and new password" });
+    }
 
-  if (newpassword !== cpassword) {
-    res.status(404).json("let your confirm password matches with new password");
-  }
+    if (newpassword !== cpassword) {
+      return res
+        .status(400)
+        .json({ message: "Confirm password must match the new password" });
+    }
 
-  if (password === newpassword) {
-    res.status(404).json("Enter diffrent password from your current one ");
-  }
-  // check if old passwor is correct
+    if (password === newpassword) {
+      return res
+        .status(400)
+        .json({ message: "New password must be different from the current password" });
+    }
 
-  const passwordIsCorrect = await bcrypt.compare(password, user.password);
+    // Check if the old password is correct
+    const passwordIsCorrect = await bcrypt.compare(password, user.password);
 
-  //save new passoword
+    if (!passwordIsCorrect) {
+      return res.status(400).json({ message: "Old password is not correct" });
+    }
 
-  if (user && passwordIsCorrect) {
+    // Save the new password
     user.password = newpassword;
     await user.save();
+
+    // Send email notification to the user
+    const template = "passwordchanged.";
+    const reply_to = "noreply@thritify.com";
+    const send_from = process.env.EMAIL_USER;
+    const subject = "Your password has been changed successfully";
+    const send_to = user.email;
+    const name = user.name;
+
+    await sendEmail(
+      subject, // Subject
+      send_to, // To email
+      send_from, // From email
+      reply_to, // Reply-to email
+      null, // CC
+      template, // Template name
+      null, // Other placeholders as null
+      null,
+      name, // Name placeholder
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null
+    );
+
     res
       .status(200)
-      .json({ message: "password changed successfully please login " });
-  } else {
-    res.status(400);
-
-    throw new Error("old password incorrect");
+      .json({ message: "Password changed successfully. Please log in." });
+  } catch (error) {
+    console.error("Error changing password:", error);
+    res.status(500).json({ message: "An error occurred", error: error.message });
   }
 });
+
 
 //------------------------------------------//
 // create goods
@@ -1138,7 +1174,7 @@ const Paymentverification = asyncHandler(async (req, res) => {
       const buyerId = metadata.buyerId;
       const sellerId = metadata.sellerid;
       const amount = data.amount / 100;
-
+console.log('meta:',metadata)
 
       const item = await Good.findById(itemId);
       const order = await Order.findById(buyerId)      
@@ -1176,9 +1212,7 @@ const Paymentverification = asyncHandler(async (req, res) => {
         });
   // Save the order
   await newOrder.save();
-        
       
-
         // Extract metadata information
         const template = "buyerpurchased.";
         const reply_to = "noreply@thritify.com";
@@ -1204,7 +1238,12 @@ const Paymentverification = asyncHandler(async (req, res) => {
           null,
           buyername,
           itemname,
-          sellername
+          sellername,
+          null,
+          null,
+          null,
+          null,
+          null
         );
 
         // Extract metadata information for seller
@@ -1231,7 +1270,8 @@ const Paymentverification = asyncHandler(async (req, res) => {
           itemname,
           buyeraddress,
           phonenumber,
-          deliveryformurl
+          deliveryformurl,
+          null
         );
 
         return res.status(200).json({
@@ -2165,34 +2205,34 @@ const productsearchbycategory = asyncHandler(async (req, res) => {
 });
 
 const messageUs = asyncHandler(async (req, res) => {
-// const {name,email,phonenumber,message} =req.body
-//   try {
-//     if(!name || !email || !phonenumber || !message){
-//       return res.status(400).json({ error: 'please fill in the required field' });
-//     }
-//     const sendFrom = process.env.EMAIL_USER
-//     const sendTo = 'olubodekehinde2019@gmail.com'
-//     const template = 'messageus.'
+const {name,email,phonenumber,message} =req.body
+  try {
+    if(!name || !email || !phonenumber || !message){
+      return res.status(400).json({ error: 'please fill in the required field' });
+    }
+    const sendFrom = process.env.EMAIL_USER
+    const sendTo = 'olubodekehinde2019@gmail.com'
+    const template = 'messageus.'
 
-//     await contactUs(
-//       'New Contact Us Message',
-//       sendTo,
-//       sendFrom,
-//       null,
-//       null, 
-//       template,
-//       name,
-//       message,
-//       phonenumber,
-//       email
-//     );
+    await contactUs(
+      'New Contact Us Message',
+      sendTo,
+      sendFrom,
+      null,
+      null,
+      template,
+      name,
+      message,
+      phonenumber,
+      email
+    );
     
-//     res.status(200).json({ success: 'Message received and email sent successfully!' });
-//     console.log('email sent ')
+    res.status(200).json({ success: 'Message received and email sent successfully!' });
+    console.log('email sent ')
 
-//   } catch (error) {
-//     res.status(500).json({ error: error.message });
-//   }
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
 });
 
 

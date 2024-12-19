@@ -19,13 +19,12 @@ app.use(cookieParser());
 app.use(
   cors({
     origin: [
-      "https://thrifftify-frontend-njpbrsoxp-10digitminds-projects.vercel.app",
       "http://localhost:3000",
       "https://thrifftify-backend.onrender.com",
       'https://thrifftify-fronend.vercel.app'
     ],
     credentials: true,
-    methods: ["GET", "POST", "PUT", "DELETE"],
+    methods: ["GET", "POST", "PUT", "DELETE",'PATCH'],
     allowedHeaders: ["Content-Type", "Authorization"],
   })
 );
