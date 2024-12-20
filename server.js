@@ -18,11 +18,7 @@ app.use(cookieParser());
 // CORS Configuration
 app.use(
   cors({
-    origin: [
-      "http://localhost:3000",
-      "https://thrifftify-backend.onrender.com",
-      'https://thrifftify-fronend.vercel.app'
-    ],
+    origin:'*',
     credentials: true,
     methods: ["GET", "POST", "PUT", "DELETE",'PATCH'],
     allowedHeaders: ["Content-Type", "Authorization"],
