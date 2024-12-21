@@ -7,6 +7,7 @@ const path = require("path");
 const { engine } = require("express-handlebars");
 const cors = require("cors");
 const groute = require("./route/Groutes.js");
+const fs = require('fs');
 
 const app = express();
 
@@ -50,14 +51,16 @@ app.use((req, res, next) => {
   res.status(404).json({ message: "Route not found" });
 });
 
+
+
 // MongoDB Connection and Server Start
 const PORT = process.env.PORT || 3500;
 mongoose
   .connect(process.env.MONGO_URL, { useNewUrlParser: true, useUnifiedTopology: true })
   .then(() => {
     console.log("Connected to MongoDB");
-    app.listen(PORT, () => {
-      console.log(`Server running on port ${PORT}`);
+   app.listen(PORT, () => {
+      console.log(`HTTPS server running on https://localhost:${PORT}`);
     });
   })
   .catch((error) => {

@@ -19,7 +19,7 @@ const multer = require("multer");
 const upload = multer({ dest: "uploads/" });
 const Cryptr = require("cryptr");
 const cryptr = new Cryptr(process.env.CRYPR_KEY);
-
+const isProduction = process.env.NODE_ENV === "production";
 const {
   initializePayment,
   verifyPayment,
@@ -191,9 +191,10 @@ const loginUser = asyncHandler(async (req, res) => {
     path: "/",
     httpOnly: true,
     expires: new Date(Date.now() + 1000 * 86400), // 1 day
-    sameSite: "none",
-    secure: true,
+    sameSite: "lax",
+    secure: true
   });
+
 
   // Send user data along with token
   const { id, lastname, firstname, location, photo, role, isVerified, phone } =
