@@ -192,7 +192,9 @@ const loginUser = asyncHandler(async (req, res) => {
     httpOnly: true,
     expires: new Date(Date.now() + 1000 * 86400), // 1 day
     sameSite: "lax",
-    secure: true
+    secure: true,
+    domain:'https://thrifftify-backend.onrender.com'
+    
   });
 
 
