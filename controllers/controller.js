@@ -87,7 +87,7 @@ const createUser = asyncHandler(async (req, res) => {
     path: "/",
     httpOnly: true,
     expires: new Date(Date.now() + 1000 * 86400), //1 day
-    sameSite: "none",
+    sameSite: "lax",
     secure: true,
   });
 
@@ -127,32 +127,30 @@ const createUser = asyncHandler(async (req, res) => {
 
 //login user
 const loginUser = asyncHandler(async (req, res) => {
-  const { email, password } = req.body;
-  //validation
-  if (!email || !password) {
-    return res.status(404).json("please Input email or password");
-  }
+  try {
+    const { email, password } = req.body;
 
-  const user = await User.findOne({ email });
-  if (!user) {
-    res.status(400);
-    return res.status(404).json("incorrect username or password ");
-  }
+    // Validation
+    if (!email || !password) {
+      return res.status(400).json( "Please provide email and password");
+    }
 
-  const correctPassword = await bcrypt.compare(password, user.password);
+    const user = await User.findOne({ email });
+    if (!user) {
+      return res.status(401).json( "Invalid email or password." );
+    }
 
-  if (user.role === "suspended" && !correctPassword) {
-    return res.status(404).json("You've been suspended contact admin ");
-  }
+    const correctPassword = await bcrypt.compare(password, user.password);
 
-  if (!correctPassword) {
-    res.status(400);
-    return res
-      .status(404)
-      .json("Incorrect email or password please click forget password");
-  }
+    if (user.role === "suspended" && correctPassword) {
+      return res.status(403).json("Your account has been suspended. Contact admin." );
+    }
 
-  //triger 2fa
+    if (!correctPassword) {
+      return res.status(401).json("Invalid email or password.");
+    }
+
+//triger 2fa
   // const ua = parser(req.headers["user-agent"]);
 
   // const currentUserAgent = [ua.ua];
@@ -186,34 +184,39 @@ const loginUser = asyncHandler(async (req, res) => {
   // }
   // generate token
 
-  const token = generateToken(user._id);
-  res.cookie("token", token, {
-    path: "/",
-    httpOnly: true,
-    expires: new Date(Date.now() + 1000 * 86400), // 1 day
-    sameSite: "None",
-    secure: true
-  });
 
+    // Generate token
+    const token = generateToken(user._id);
 
-  // Send user data along with token
-  const { id, lastname, firstname, location, photo, role, isVerified, phone } =
-    user;
-  res.status(200).json({
-    id,
-    firstname,
-    lastname,
-    location,
-    email,
-    photo,
-    role,
-    isVerified,
-    phone,
-  });
- 
+    res.cookie("token", token, {
+      path: "/",
+      httpOnly: true,
+      expires: new Date(Date.now() + 1000 * 86400), // 1 day
+      sameSite: "None", // Required for cross-origin cookies
+      secure: true, // Ensure secure context
+    });
 
-
+    // Send user data along with token
+    const { id, lastname, firstname, location, photo, role, isVerified, phone } = user;
+    res.status(200).json({
+      id,
+      firstname,
+      lastname,
+      location,
+      email,
+      photo,
+      role,
+      isVerified,
+      phone,
+    });
+  } catch (error) {
+    console.error("Error during login:", error);
+    res.status(500).json({ message: "Internal server error. Please try again later." });
+  }
 });
+
+
+
 
 //send login code
 const sendLoginCode = asyncHandler(async (req, res) => {
