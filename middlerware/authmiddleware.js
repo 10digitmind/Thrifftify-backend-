@@ -6,32 +6,34 @@ const jwt = require("jsonwebtoken");
 const goods =require('../model/Goodmodel')
 
 const protect = asyncHandler(async (req, res, next) => {
-
   try {
-    const token = req.cookies.token;
+    // Extract token from the `Authorization` header instead of cookies
+    const token = req.headers.authorization?.split(' ')[1];
 
     if (!token) {
-      res.status(401);
-      throw new Error("not authorized,pls login");
+      return res.status(401).json({ message: "Not authorized, please log in" });
     }
-    //verify token
+
+    // Verify the token
     const verified = jwt.verify(token, process.env.JWT_SECRET);
-    console.log(verified); //get userid from token
+
+    // Fetch user details from the database
     const user = await User.findById(verified.id).select("-password");
 
     if (!user) {
-      res.status(404);
-      throw new Error("user not found");
+      return res.status(404).json({ message: "User not found" });
     }
+
     if (user.role === "suspended") {
-      res.status(400);
-      throw new Error("user suspend contact suport");
+      return res.status(403).json({ message: "User suspended, contact support" });
     }
+
+    // Attach user to the request object
     req.user = user;
     next();
   } catch (error) {
-    res.status(401);
-    res.status(401).send({ error: error.message });
+    console.error("Authorization error:", error);
+    return res.status(401).json({ message: "Not authorized, invalid token" });
   }
 });
 

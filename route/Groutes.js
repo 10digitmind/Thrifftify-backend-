@@ -92,7 +92,7 @@ router.post("/api/users/register", createUser);
 router.post("/api/users/login", loginUser);
 
 //log out user
-router.get("/api/users/logout", logoutUser);
+router.get("/api/users/logout",protect, logoutUser);
 //getUser
 router.get("/api/users/getuser",protect, getUser);
 //update user
@@ -107,7 +107,7 @@ router.delete("/api/users/deleteuser/:id", protect, adminOnly, deleteUser);
 router.get("/api/users/getallusers", protect, author, getAllUsers);
 
 // login status
-router.get("/api/users/loginstatus", loginStatus);
+router.get("/api/users/loginstatus",protect, loginStatus);
 
 //upgrade user
 router.post("/api/users/upgradeuser", protect, adminOnly, upgradeUser);

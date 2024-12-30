@@ -77,19 +77,14 @@ const createUser = asyncHandler(async (req, res) => {
     password,
     dob,
     userAgent,
+    
   });
 
   // Generate token
   const token = generateToken(user._id);
 
   // HTTP-ONLY COOKIE
-  res.cookie("token", token, {
-    path: "/",
-    httpOnly: true,
-    expires: new Date(Date.now() + 1000 * 86400), //1 day
-    sameSite: "lax",
-    secure: true,
-  });
+ 
 
   if (user) {
     const {
@@ -103,6 +98,7 @@ const createUser = asyncHandler(async (req, res) => {
       role,
       isVerified,
       phone,
+      
       
     } = user;
 
@@ -118,6 +114,7 @@ const createUser = asyncHandler(async (req, res) => {
       token,
       phone,
       dob,
+      token
     });
   } else {
     res.status(400);
@@ -147,7 +144,7 @@ const loginUser = asyncHandler(async (req, res) => {
     }
 
     if (!correctPassword) {
-      return res.status(401).json("Invalid email or password.");
+      return res.status(401).json({message:"Invalid email or password."});
     }
 
 //triger 2fa
@@ -188,13 +185,7 @@ const loginUser = asyncHandler(async (req, res) => {
     // Generate token
     const token = generateToken(user._id);
 
-    res.cookie("token", token, {
-      path: "/",
-      httpOnly: true,
-      expires: new Date(Date.now() + 1000 * 86400), // 1 day
-      sameSite: "None", // Required for cross-origin cookies
-      secure: true, // Ensure secure context
-    });
+   
 
     // Send user data along with token
     const { id, lastname, firstname, location, photo, role, isVerified, phone } = user;
@@ -208,14 +199,13 @@ const loginUser = asyncHandler(async (req, res) => {
       role,
       isVerified,
       phone,
+      token,
     });
   } catch (error) {
     console.error("Error during login:", error);
     res.status(500).json({ message: "Internal server error. Please try again later." });
   }
 });
-
-
 
 
 //send login code
@@ -462,23 +452,36 @@ const verifyUser = asyncHandler(async (req, res) => {
 
 //logout user
 const logoutUser = asyncHandler(async (req, res) => {
-  const token = req.cookies.token;
-  res.cookie("token", token, {
-    path: "/",
-    httpOnly: true,
-    expires: new Date(0),
-    sameSite: "none",
-    secure: true,
-  });
-  return res.status(200).json({ message: "Logout successfull" });
+  // Extract token from the Authorization header
+  const authHeader = req.headers.authorization;
+
+  // Check if the token is present and starts with "Bearer "
+  if (!authHeader || !authHeader.startsWith("Bearer ")) {
+    return res.status(401).json({ status: false, message: "No token provided." });
+  }
+
+  // Get the token from the Authorization header
+  const token = authHeader.split(" ")[1];
+
+  try {
+    // Optionally, you could verify the token here using JWT (if you want to ensure the token is valid)
+    // Example: jwt.verify(token, process.env.JWT_SECRET);
+
+    // Instead of clearing cookies, just send a response indicating that the logout was successful
+    return res.status(200).json({ message: "Logout successful" });
+  } catch (error) {
+    console.error("Error during logout:", error);
+    return res.status(500).json({ message: "An error occurred during logout." });
+  }
 });
+
 
 //getUser
 const getUser = asyncHandler(async (req, res) => {
   try {
   
     if (!req.user || !req.user._id) {
-      console.error("req.user._id is undefined");
+     
       res.status(400).json({ message: "User not authenticated" });
       return;
     }
@@ -634,16 +637,29 @@ const getAllUsers = asyncHandler(async (req, res) => {
 
 // login status
 const loginStatus = asyncHandler(async (req, res) => {
-  const token = req.cookies.token;
-  if (!token) {
-    return res.json(false);
+  // Retrieve token from the Authorization header
+  const authHeader = req.headers.authorization;
+
+  if (!authHeader || !authHeader.startsWith("Bearer ")) {
+    return res.status(401).json({ status: false, message: "No token provided." });
   }
-  const verified = jwt.verify(token, process.env.JWT_SECRET);
-  if (verified) {
-    return res.json(true);
+
+  const token = authHeader.split(" ")[1];
+
+  try {
+    // Verify the token
+    const verified = jwt.verify(token, process.env.JWT_SECRET);
+    if (verified) {
+      return res.status(200).json({ status: true, message: "User is logged in." });
+    }
+  } catch (error) {
+    console.error("Token verification failed:", error.message);
+    return res.status(401).json({ status: false, message: "Invalid or expired token." });
   }
-  return res.json(false);
+
+  return res.status(401).json({ status: false, message: "Unauthorized access." });
 });
+
 
 // upgrader user
 const upgradeUser = asyncHandler(async (req, res) => {
@@ -673,7 +689,7 @@ const sendAutoEmail = asyncHandler(async (req, res) => {
   const user = User.findOne({ email: send_to });
   if (!user) {
     res.status(404).json({ message: "user not found  " });
-  }
+  }SendverificationEmail
   const send_from = process.env.EMAIL_USER;
   const name = user.name;
   const link = `${process.env.FRONTEND_URL}${url}`;

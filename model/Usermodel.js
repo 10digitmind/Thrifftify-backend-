@@ -124,6 +124,7 @@ const Userschmema = mongoose.Schema(
       type: Boolean,
       default: false,
     },
+   
   },
 
   {
