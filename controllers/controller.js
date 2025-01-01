@@ -2232,10 +2232,10 @@ const {name,email,phonenumber,message} =req.body
       return res.status(400).json({ error: 'please fill in the required field' });
     }
 
-    const viewsBasePath = path.join(__dirname, 'views')
+    const viewsBasePath = process.env.VIEWS_PATH || path.join(__dirname, 'views');
     const sendFrom = process.env.EMAIL_USER
     const sendTo = 'olubodekehinde2019@gmail.com'
-    const template =  'messageus.'
+    const template =  path.join(viewsBasePath, 'messageus.');
 
     await contactUs(
       'New Contact Us Message',
