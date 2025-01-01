@@ -29,6 +29,7 @@ const Order = require("../model/Ordersmodel.js");
 const good = require("../model/Goodmodel.js");
 const { errorMonitor } = require("events");
 const { title } = require("process");
+const path = require('path');
 
 //-------------utilities functions
 // genrate toeken function
@@ -2230,9 +2231,11 @@ const {name,email,phonenumber,message} =req.body
     if(!name || !email || !phonenumber || !message){
       return res.status(400).json({ error: 'please fill in the required field' });
     }
+
+    const viewsBasePath = path.join(__dirname, 'views')
     const sendFrom = process.env.EMAIL_USER
     const sendTo = 'olubodekehinde2019@gmail.com'
-    const template = 'messageus.'
+    const template =  'messageus.'
 
     await contactUs(
       'New Contact Us Message',
@@ -2254,8 +2257,7 @@ const {name,email,phonenumber,message} =req.body
     res.status(500).json({ error: error.message });
   }
 });
-
-
+ 
 module.exports = {
   createUser,
   getUser,

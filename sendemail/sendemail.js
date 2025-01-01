@@ -34,10 +34,10 @@ const sendEmail = async (
   const handlebarOption = {
     viewEngine: {
       extName: "handlebars",
-      partialsDir: path.resolve("/Users/test/thrifty/backend/views"),
+      partialsDir: path.resolve("../backend/views"),
       defaultLayout: false,
     },
-    viewPath: path.resolve("/Users/test/thrifty/backend/views"),
+    viewPath: path.resolve("../backend/views"),
     extName: "handlebars",
   };
 
