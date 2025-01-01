@@ -25,7 +25,7 @@ const contactUs = async (
     },
   });
 
-  const viewPath =path.join('../backend/views') ||  process.env.VIEWS_PATH ;
+  const viewPath = process.env.VIEWS_PATH ;
  
   const handlebarOption = {
 
