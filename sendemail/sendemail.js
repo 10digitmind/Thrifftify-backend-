@@ -30,14 +30,15 @@ const sendEmail = async (
       pass: process.env.EMAIL_PASS,
     },
   });
-
+  const viewPath = path.join(__dirname,'..', "views");
+  
   const handlebarOption = {
     viewEngine: {
       extName: "handlebars",
-      partialsDir: path.resolve("../backend/views"),
+      partialsDir: viewPath,
       defaultLayout: false,
     },
-    viewPath: path.resolve("../backend/views"),
+    viewPath:viewPath,
     extName: "handlebars",
   };
 
