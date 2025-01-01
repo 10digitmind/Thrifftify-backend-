@@ -2237,6 +2237,7 @@ const {name,email,phonenumber,message} =req.body
     const sendTo = 'olubodekehinde2019@gmail.com'
     const template =  path.join(viewsBasePath, 'messageus.');
 
+    console.log(template)
     await contactUs(
       'New Contact Us Message',
       sendTo,
