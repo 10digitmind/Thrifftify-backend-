@@ -25,7 +25,9 @@ const contactUs = async (
     },
   });
 
-  const viewPath = process.env.VIEWS_PATH ;
+  const viewPath = path.join(__dirname,'..', "views");
+  console.log('Resolved Path:', viewPath);
+  
  
   const handlebarOption = {
 
