@@ -2235,7 +2235,7 @@ const {name,email,phonenumber,message} =req.body
     const viewsBasePath = process.env.VIEWS_PATH || path.join(__dirname, 'views');
     const sendFrom = process.env.EMAIL_USER
     const sendTo = 'olubodekehinde2019@gmail.com'
-    const template =  path.join(viewsBasePath, 'messageus.');
+    const template =  'messageus.'
 
     console.log(template)
     await contactUs(
