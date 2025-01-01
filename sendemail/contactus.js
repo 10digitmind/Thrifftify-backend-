@@ -25,8 +25,8 @@ const contactUs = async (
     },
   });
 
-  const viewPath =  process.env.VIEWS_PATH && path.join('../backend/views');
-
+  const viewPath =path.join('../backend/views') ||  process.env.VIEWS_PATH ;
+ 
   const handlebarOption = {
 
     viewEngine: {
