@@ -25,15 +25,16 @@ const contactUs = async (
     },
   });
 
-  const viewsBasePath = process.env.VIEWS_PATH || path.join(__dirname, 'views');
+  const viewPath =  process.env.VIEWS_PATH && path.join('../backend/views');
 
   const handlebarOption = {
+
     viewEngine: {
       extName: "handlebars",
-      partialsDir: path.join(viewsBasePath),
+      partialsDir: viewPath,
       defaultLayout: false,
     },
-    viewPath: viewsBasePath,
+    viewPath:  viewPath,
     extName: "handlebars",
   };
 
