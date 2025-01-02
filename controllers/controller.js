@@ -141,7 +141,8 @@ const loginUser = asyncHandler(async (req, res) => {
     const correctPassword = await bcrypt.compare(password, user.password);
 
     if (user.role === "suspended" && correctPassword) {
-      return res.status(403).json("Your account has been suspended. Contact admin." );
+    
+      return res.status(401).json("Your account has been suspended. Contact admin.");
     }
 
     if (!correctPassword) {
@@ -180,7 +181,7 @@ const loginUser = asyncHandler(async (req, res) => {
   //   res.status(401).json(
   //     "New device or browser detected" );
   // }
-  // generate token
+  // //generate token
 
 
     // Generate token
