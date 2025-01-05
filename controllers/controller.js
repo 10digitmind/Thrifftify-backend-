@@ -125,6 +125,7 @@ const createUser = asyncHandler(async (req, res) => {
 
 //login user
 const loginUser = asyncHandler(async (req, res) => {
+ 
   try {
     const { email, password } = req.body;
 
@@ -142,11 +143,11 @@ const loginUser = asyncHandler(async (req, res) => {
 
     if (user.role === "suspended" && correctPassword) {
     
-      return res.status(401).json("Your account has been suspended. Contact admin.");
+      return res.status(401).json("Your account has been suspended. Contact admin ASAP!.");
     }
 
     if (!correctPassword) {
-      return res.status(401).json({message:"Invalid email or password."});
+      return res.status(401).json("Invalid email or password.");
     }
 
 //triger 2fa
@@ -181,13 +182,12 @@ const loginUser = asyncHandler(async (req, res) => {
   //   res.status(401).json(
   //     "New device or browser detected" );
   // }
+
   // //generate token
 
 
     // Generate token
     const token = generateToken(user._id);
-
-   
 
     // Send user data along with token
     const { id, lastname, firstname, location, photo, role, isVerified, phone } = user;
@@ -541,7 +541,6 @@ const getUser = asyncHandler(async (req, res) => {
       userAgent,
       verificationRequested,
     });
-
     console.log("User response sent successfully");
   } catch (error) {
     console.error("Error in getUser:", error);
@@ -2046,12 +2045,12 @@ const idConfirmationEmail = asyncHandler(async (req, res) => {
     // Retrieve the user by email
     const user = await User.findOne({ email });
     if (!user) {
-      return res.status(404).json({ message: 'User not found.' });
+      return res.status(404).json( 'User not found.' );
     }
 
     // Check if the user has already requested ID verification
     if (user.idVerified) {
-      return res.status(400).json({ message: 'user already verify.' });
+      return res.status(400).json( 'user already verify.' );
     }
  
     user.idVerified = true; // Mark the verification as requested
