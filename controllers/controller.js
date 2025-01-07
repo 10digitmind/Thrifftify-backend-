@@ -244,7 +244,7 @@ const sendLoginCode = asyncHandler(async (req, res) => {
   const reply_to = "noreply@thritify.com";
   const template = 'loginwithcode.';
   const name = user.firstname;
-  const link = `http://localhost:3000/Loginwithcode/${email}`;
+  const link = `${process.env.FRONTEND_URL}/Loginwithcode/${email}`;
 
   // Send email
   try {
@@ -1253,7 +1253,7 @@ console.log('meta:',metadata)
         const sellerSubject = "Your item has been purchased";
         const sellerEmail = metadata.sellerEmail;
         const phonenumber = metadata.phoneNumber;
-        const deliveryformurl = `http://localhost:3000/deliveryform/${newOrder._id}/${itemname}`;
+        const deliveryformurl = `${process.env.FRONTEND_URL}/deliveryform/${newOrder._id}/${itemname}`;
         const selercc = "purchased@thriftiffy.com";
 
         // Email to Seller
@@ -1367,7 +1367,7 @@ const UpdatePurchasedItem = asyncHandler(async (req, res) => {
     const itemname = itemdetails;
     const file = req.file;
     const cc = "dispatched@thriftiffy.com";
-    const link = `http://localhost:3000/confirmdelivery/${itemid}/${purchasedgoods.title}`;
+    const link = `https://thrifftify-fronend.vercel.app//confirmdelivery/${itemid}/${purchasedgoods.title}`;
 
     await dispatchEmail(
       subject,
@@ -1521,7 +1521,7 @@ const ConfirmDelivery = asyncHandler(async (req, res) => {
     const sent_from = process.env.EMAIL_USER;
     const reply_to = "noreply@thritify.com";
     const cc = "dispatched@thriftiffy.com";
-    const link = `http://localhost:3000`;
+    const link = `${process.env.FRONTEND_URL}`;
 
     await dispatchEmail(
       subject,
@@ -1552,7 +1552,7 @@ const ConfirmDelivery = asyncHandler(async (req, res) => {
     const subjecttobuyer = `write review for the item  ${Purchaseditem.orderitems[0].title} thta has been confrimed delivered`;
     const namebuyer = Getbuyerinfo.firstname;
 
-    const reviewlink = `http://localhost:3000/review/${sellerid}/${Purchaseditem.orderitems[0]._id}`;
+    const reviewlink = `${process.env.FRONTEND_URL}/review/${sellerid}/${Purchaseditem.orderitems[0]._id}`;
 
     await dispatchEmail(
       subjecttobuyer,
@@ -1677,7 +1677,7 @@ Getsellerinfo.pendingSoldAmount = 0;
     const sent_from = process.env.EMAIL_USER;
     const reply_to = "noreply@thritify.com";
     const cc = "dispatched@thriftiffy.com";
-    const link = `http://localhost:3000`;
+    const link = `${process.env.FRONTEND_URL}`;
 
     //email to seller
     await dispatchEmail(
@@ -1699,7 +1699,8 @@ Getsellerinfo.pendingSoldAmount = 0;
       null,
       null,
       null,
-      null
+      null,
+      link
     );
 
     res.status(200).json("Email sent successfully, dispute created");
@@ -2104,7 +2105,7 @@ const idRejectionEmail = asyncHandler(async (req, res) => {
     const idConfirmationTemplate = 'Idrejectionemail.';
     const subject = 'Verification rejected!!';
  
-    const link ='localhost:3000'
+    const link =`${process.env.FRONTEND_URL}`
     // Notify customer
     await idVerificationEmail(
       subject,
