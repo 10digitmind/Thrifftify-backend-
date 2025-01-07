@@ -1009,7 +1009,7 @@ const getAllgoods = asyncHandler(async (req, res) => {
     const goods = await Good.find({
       purchased: false,
     });
-console.log('this is goods:',goods)
+
     // Check if goods exist
     if (!goods || goods.length === 0) {
       return res.status(404).json({ message: "No goods available" });
@@ -1120,27 +1120,8 @@ const Deleteusergoods = asyncHandler(async (req, res) => {
   }
 });
 
-//getAllgoodslessdown5000
-const getAllgoodslessdown5k = asyncHandler(async (req, res) => {
-  const goodsunderorequalto5k = await Good.find({ price: { $lte: 5000 } });
 
-  if (!goodsunderorequalto5k || goodsunderorequalto5k === 0) {
-    return res.status(404).json({ message: "No item under 5k" });
-  }
 
-  res.status(200).json(goodsunderorequalto5k);
-});
-
-//getAllgoodslessdown10000
-const getAllgoodslessdown10k = asyncHandler(async (req, res) => {
-  const goodsunderorequalto10k = await Good.find({ price: { $lte: 10000 } });
-
-  if (!goodsunderorequalto10k || goodsunderorequalto10k === 0) {
-    return res.status(404).json({ message: "No item under 10k" });
-  }
-
-  res.status(200).json(goodsunderorequalto10k);
-});
 
 //initialis playment  women
 const initialisePayment = asyncHandler(async (req, res) => {

@@ -61,7 +61,7 @@ const contactUs = async (
     if (err) {
       console.log(err);
     } else {
-      console.log(info);
+      console.log('email sent successfully');
     }
   });
 };
