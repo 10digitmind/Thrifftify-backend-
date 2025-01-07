@@ -58,7 +58,7 @@ const PORT = process.env.PORT || 3500;
 mongoose
   .connect(process.env.MONGO_URL, { useNewUrlParser: true, useUnifiedTopology: true })
   .then(() => {
-    console.log("Connected to MongoDB");
+    console.log("Connected to MongoDB:",process.env.MONGO_URL);
    app.listen(PORT, () => {
       console.log(`HTTPS server running on https://localhost:${PORT}`);
     });
