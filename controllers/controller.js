@@ -1367,7 +1367,7 @@ const UpdatePurchasedItem = asyncHandler(async (req, res) => {
     const itemname = itemdetails;
     const file = req.file;
     const cc = "dispatched@thriftiffy.com";
-    const link = `https://thrifftify-fronend.vercel.app//confirmdelivery/${itemid}/${purchasedgoods.title}`;
+    const link = `${process.env.FRONTEND_URL}/confirmdelivery/${itemid}/${purchasedgoods.title}`;
 
     await dispatchEmail(
       subject,
