@@ -380,7 +380,7 @@ const sendVerifyEmail = asyncHandler(async (req, res) => {
   res.send("token saved");
 
   //construct verification url
-  const verificationUrl = `${process.env.FRONTEND_USER}}/verify/${verificationToken}`;
+  const verificationUrl = `${process.env.FRONTEND_USER}/verify/${verificationToken}`;
 
   // set email to send to user
 
