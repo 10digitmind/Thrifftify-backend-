@@ -380,7 +380,7 @@ const sendVerifyEmail = asyncHandler(async (req, res) => {
   res.send("token saved");
 
   //construct verification url
-  const verificationUrl = `${process.env.FRONTEND_USER}/verify/${verificationToken}`;
+  const verificationUrl = `{${process.env.FRONTEND_URL}}/verify/${verificationToken}`;
 
   // set email to send to user
 
@@ -750,7 +750,7 @@ const forgotPassword = asyncHandler(async (req, res) => {
   }).save();
 
   // Construct reset password URL
-  const resetPasswordUrl = `${process.env.FRONTEND_USER}/resetpassword/${resetToken}`;
+  const resetPasswordUrl = `${process.env.FRONTEND_URL}}/resetpassword/${resetToken}`;
 
   // Set email parameters
   const subject = "Password Reset - Thritify";
