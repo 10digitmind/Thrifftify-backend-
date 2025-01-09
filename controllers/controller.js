@@ -244,7 +244,7 @@ const sendLoginCode = asyncHandler(async (req, res) => {
   const reply_to = "noreply@thritify.com";
   const template = 'loginwithcode.';
   const name = user.firstname;
-  const link = `${process.env.FRONTEND_URL}/Loginwithcode/${email}`;
+  const link = `${process.env.FRONTEND_USER}/Loginwithcode/${email}`;
 
   // Send email
   try {
@@ -380,7 +380,7 @@ const sendVerifyEmail = asyncHandler(async (req, res) => {
   res.send("token saved");
 
   //construct verification url
-  const verificationUrl = `${process.env.FRONTEND_URL}}/verify/${verificationToken}`;
+  const verificationUrl = `${process.env.FRONTEND_USER}}/verify/${verificationToken}`;
 
   // set email to send to user
 
@@ -693,7 +693,7 @@ const sendAutoEmail = asyncHandler(async (req, res) => {
   }SendverificationEmail
   const send_from = process.env.EMAIL_USER;
   const name = user.name;
-  const link = `${process.env.FRONTEND_URL}${url}`;
+  const link = `${process.env.FRONTEND_USER}${url}`;
 
   try {
     await sendEmail(
@@ -750,7 +750,7 @@ const forgotPassword = asyncHandler(async (req, res) => {
   }).save();
 
   // Construct reset password URL
-  const resetPasswordUrl = `${process.env.FRONTEND_URL}}/resetpassword/${resetToken}`;
+  const resetPasswordUrl = `${process.env.FRONTEND_USER}}/resetpassword/${resetToken}`;
 
   // Set email parameters
   const subject = "Password Reset - Thritify";
@@ -1253,7 +1253,7 @@ console.log('meta:',metadata)
         const sellerSubject = "Your item has been purchased";
         const sellerEmail = metadata.sellerEmail;
         const phonenumber = metadata.phoneNumber;
-        const deliveryformurl = `${process.env.FRONTEND_URL}/deliveryform/${newOrder._id}/${itemname}`;
+        const deliveryformurl = `${process.env.FRONTEND_USER}/deliveryform/${newOrder._id}/${itemname}`;
         const selercc = "purchased@thriftiffy.com";
 
         // Email to Seller
@@ -1367,7 +1367,7 @@ const UpdatePurchasedItem = asyncHandler(async (req, res) => {
     const itemname = itemdetails;
     const file = req.file;
     const cc = "dispatched@thriftiffy.com";
-    const link = `${process.env.FRONTEND_URL}/confirmdelivery/${itemid}/${purchasedgoods.title}`;
+    const link = `${process.env.FRONTEND_USER}/confirmdelivery/${itemid}/${purchasedgoods.title}`;
 
     await dispatchEmail(
       subject,
@@ -1521,7 +1521,7 @@ const ConfirmDelivery = asyncHandler(async (req, res) => {
     const sent_from = process.env.EMAIL_USER;
     const reply_to = "noreply@thritify.com";
     const cc = "dispatched@thriftiffy.com";
-    const link = `${process.env.FRONTEND_URL}`;
+    const link = `${process.env.FRONTEND_USER}`;
 
     await dispatchEmail(
       subject,
@@ -1552,7 +1552,7 @@ const ConfirmDelivery = asyncHandler(async (req, res) => {
     const subjecttobuyer = `write review for the item  ${Purchaseditem.orderitems[0].title} thta has been confrimed delivered`;
     const namebuyer = Getbuyerinfo.firstname;
 
-    const reviewlink = `${process.env.FRONTEND_URL}/review/${sellerid}/${Purchaseditem.orderitems[0]._id}`;
+    const reviewlink = `${process.env.FRONTEND_USER}/review/${sellerid}/${Purchaseditem.orderitems[0]._id}`;
 
     await dispatchEmail(
       subjecttobuyer,
@@ -1677,7 +1677,7 @@ Getsellerinfo.pendingSoldAmount = 0;
     const sent_from = process.env.EMAIL_USER;
     const reply_to = "noreply@thritify.com";
     const cc = "dispatched@thriftiffy.com";
-    const link = `${process.env.FRONTEND_URL}`;
+    const link = `${process.env.FRONTEND_USER}`;
 
     //email to seller
     await dispatchEmail(
@@ -2105,7 +2105,7 @@ const idRejectionEmail = asyncHandler(async (req, res) => {
     const idConfirmationTemplate = 'Idrejectionemail.';
     const subject = 'Verification rejected!!';
  
-    const link =`${process.env.FRONTEND_URL}`
+    const link =`${process.env.FRONTEND_USER}`
     // Notify customer
     await idVerificationEmail(
       subject,
