@@ -750,7 +750,7 @@ const forgotPassword = asyncHandler(async (req, res) => {
   }).save();
 
   // Construct reset password URL
-  const resetPasswordUrl = `${process.env.FRONTEND_USER}}/resetpassword/${resetToken}`;
+  const resetPasswordUrl = `${process.env.FRONTEND_USER}/resetpassword/${resetToken}`;
 
   // Set email parameters
   const subject = "Password Reset - Thritify";
