@@ -48,28 +48,26 @@ const hashToken = (token) => {
 // create user
 const createUser = asyncHandler(async (req, res) => {
   const { firstname, lastname, password, email, location, dob } = req.body;
-  //validation
 
+  // Validation
   if (!firstname || !lastname || !email || !password || !location || !dob) {
-    res.status(400).json("Please fill in the require field");
+    return res.status(400).json({ message: "Please fill in all required fields." });
   }
   if (password.length < 6) {
-    res.status(400).json("Password must be at least six characters long");
+    return res.status(400).json({ message: "Password must be at least six characters long." });
   }
 
-  // check if user exist
-
+  // Check if user exists
   const userExists = await User.findOne({ email });
   if (userExists) {
-    res.status(400);
-    return res.status(404).json("Email already registered please log in");
+    return res.status(400).json({ message: "Email already registered. Please log in." });
   }
 
-  // get useraget
+  // Get user agent
   const ua = parser(req.headers["user-agent"]);
-
   const userAgent = [ua.ua];
-  //create new user
+
+  // Create new user
   const user = await User.create({
     firstname,
     lastname,
@@ -78,30 +76,14 @@ const createUser = asyncHandler(async (req, res) => {
     password,
     dob,
     userAgent,
-    
   });
 
   // Generate token
   const token = generateToken(user._id);
 
-  // HTTP-ONLY COOKIE
- 
-
+  // If user is created successfully
   if (user) {
-    const {
-      id,
-      lastname,
-      firstname,
-      location,
-      email,
-      password,
-      photo,
-      role,
-      isVerified,
-      phone,
-      
-      
-    } = user;
+    const { id, lastname, firstname, location, email, photo, role, isVerified, phone, dob } = user;
 
     res.status(201).json({
       id,
@@ -115,13 +97,12 @@ const createUser = asyncHandler(async (req, res) => {
       token,
       phone,
       dob,
-      token
     });
   } else {
-    res.status(400);
-    throw new Error("invalid user data");
+    res.status(400).json({ message: "Invalid user data." });
   }
 });
+
 
 //login user
 const loginUser = asyncHandler(async (req, res) => {
