@@ -26,6 +26,10 @@
       p {
         line-height: 1.6;
       }
+      b{
+        color: green;
+    
+      }
     </style>
   </head>
   <body>
@@ -37,7 +41,7 @@
     <section>
       <h2>Hello Thriftans, {{name}}</h2>
       <p>
-        We have received your withdrawal request for the amount of {{amount}} naira. Your account will be credited within 1-2 business days.
+        We have received your withdrawal request for the amount of {{amount}} naira to bankname: <b>{{bankname}}</b>  and Account number: <b>{{accountnumber}}</b>  Your account will be credited within 1-2 business days.
       </p>
       <p>
         If you did not initiate this request, please update your account password immediately or contact us at <a href="mailto:support@Thriftify.com">support@Thriftify.com</a>.

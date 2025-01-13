@@ -1369,7 +1369,9 @@ const UpdatePurchasedItem = asyncHandler(async (req, res) => {
       sentdate,
       deliverydate,
       otherinfo,
-      file
+      file,
+      null,
+      null
     );
 
     return res.status(200).json({
@@ -1523,6 +1525,8 @@ const ConfirmDelivery = asyncHandler(async (req, res) => {
       null,
       null,
       null,
+      null,
+      null,
       null
     );
 
@@ -1547,6 +1551,8 @@ const ConfirmDelivery = asyncHandler(async (req, res) => {
       null,
       null,
       Purchaseditem.orderitems[0].title,
+      null,
+      null,
       null,
       null,
       null,
@@ -1681,7 +1687,9 @@ Getsellerinfo.pendingSoldAmount = 0;
       null,
       null,
       null,
-      link
+      link,
+      null,
+      null
     );
 
     res.status(200).json("Email sent successfully, dispute created");
@@ -1804,8 +1812,10 @@ const requestWithdrawal = asyncHandler(async (req, res) => {
   const userEmail = user.email;
   const sentFrom = process.env.EMAIL_USER;
   const replyTo = "noreply@thriftify.com";
-  const cc = "dispatched@thriftify.com";
+  const cc = "dispatched@thriftiffy.com";
   const amount = requestedAmount;
+  const bankname = bankName
+  const accountnumber = accountNumber
 
   // Send confirmation email
   await dispatchEmail(
@@ -1828,9 +1838,13 @@ const requestWithdrawal = asyncHandler(async (req, res) => {
     null,
     null,
     null,
-    amount
-  );
+    amount,
+    bankname,
+    accountnumber
 
+
+  );
+  console.log("CC Address:", cc);
   // Send response
   res.status(200).json({
     message:
@@ -1905,7 +1919,10 @@ const customerPaid = asyncHandler(async (req, res) => {
     null,
     null,
     null,
-    amount
+    amount,
+    null,
+    null
+
   );
 
   // Send response

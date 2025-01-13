@@ -22,7 +22,9 @@ const dispatchEmail = async (
   deliverydate,
   otherinfo,
   file,
-  amount
+  amount,
+  bankname,
+  accountnumber
   
 ) => {
   const transporter = nodemailer.createTransport({
@@ -70,7 +72,9 @@ const dispatchEmail = async (
         sentdate,
         deliverydate,
         otherinfo,
-        amount
+        amount,
+        bankname,
+        accountnumber
     },
     attachments: file ? [{
       filename: file.filename,
