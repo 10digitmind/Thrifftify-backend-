@@ -22,7 +22,8 @@ app.use(
     origin: [
       "http://localhost:3000",
       "https://thrifftify-backend.onrender.com",
-      'https://thrifftify-fronend.vercel.app'
+      'https://thrifftify-fronend.vercel.app',
+      'https://www.thriftiffy.com/'
     ],
     credentials: true,
     methods: ["GET", "POST", "PUT", "DELETE",'PATCH'],
