@@ -13,7 +13,8 @@ const {contactUs} = require('../sendemail/contactus.js')
 const Token = require("../model/tokenmodel.js");
 const Good = require("../model/Goodmodel.js");
 const Review = require("../model/Reviews.js");
-const crypto = require("crypto");
+const crypto = require('crypto')
+const CryptoJS = require('crypto-js');
 const cloudinary = require("../utills/cloudinary.js");
 const multer = require("multer");
 const upload = multer({ dest: "uploads/" });
@@ -373,6 +374,8 @@ const sendVerifyEmail = asyncHandler(async (req, res) => {
   const name = user.name;
   const link = verificationUrl;
 
+  console.log('usermeail:',user.email)
+
   //send email
 
   try {
@@ -500,18 +503,26 @@ const getUser = asyncHandler(async (req, res) => {
       verificationRequested,
     } = user;
 
+    const passphrase = process.env.CRYPTO_JS
+ // Replace with a secure passphrase
+    const encryptedEmail = CryptoJS.AES.encrypt(email.toString(), passphrase).toString();
+    const encryptedPhone = CryptoJS.AES.encrypt(phone.toString(), passphrase).toString();
+    const encryptedDob = CryptoJS.AES.encrypt(dob.toString(), passphrase).toString();
+
+    
+    
     res.status(200).json({
       id,
       firstname,
       lastname,
       location,
-      email,
+      email:encryptedEmail,
       photo,
       role,
       isVerified,
       idVerified,
-      phone,
-      dob,
+      phone:encryptedPhone,
+      dob:encryptedDob,
       about,
       totalPurchasedAmount,
       totalSoldAmount,
@@ -671,7 +682,8 @@ const sendAutoEmail = asyncHandler(async (req, res) => {
   const user = User.findOne({ email: send_to });
   if (!user) {
     res.status(404).json({ message: "user not found  " });
-  }SendverificationEmail
+  }
+
   const send_from = process.env.EMAIL_USER;
   const name = user.name;
   const link = `${process.env.FRONTEND_USER}${url}`;
@@ -1107,19 +1119,34 @@ const Deleteusergoods = asyncHandler(async (req, res) => {
 //initialis playment  women
 const initialisePayment = asyncHandler(async (req, res) => {
   const { email, amount, metadata } = req.body;
-  const formData = new FormData();
-  formData.append("email", email);
-  formData.append("amount", amount * 100);
-  formData.append("metadata", JSON.stringify(metadata));
 
-  // Amount in kobo
-  const response = await initializePayment(formData, {
-    headers: {
-      Authorization: `Bearer ${process.env.PAYSTACK_SCERET_KEY}`,
-      "Content-Type": `multipart/form-data; boundary=${formData._boundary}`,
-    },
-  });
-  res.status(200).json(response);
+  if (!email || !amount) {
+    return res.status(400).json({ error: "Email and amount are required." });
+  }
+  try {
+    const response = await axios.post(
+      "https://api.paystack.co/transaction/initialize",
+      {
+        email,
+        amount: amount * 100, // Amount in kobo
+        metadata, // Ensure metadata is a valid JSON object
+      },
+      {
+        headers: {
+          Authorization: `Bearer ${process.env.PAYSTACK_SCERET_KEY}`,
+          "Content-Type": "application/json",
+        },
+      }
+    );
+
+   
+    return res.status(200).json(response.data);
+  } catch (error) {
+    console.error("Error initializing payment:", error.response?.data || error.message);
+    return res.status(400).json({
+      error: error.response?.data || "Failed to initialize payment.",
+    });
+  }
 });
 
 //verify  playment
@@ -1899,7 +1926,7 @@ const customerPaid = asyncHandler(async (req, res) => {
   const amount = amountPaid; // Corrected variable name
 
   // Send confirmation email
-  await dispatchEmail(
+  await (
     subject,
     userEmail,
     sentFrom,
