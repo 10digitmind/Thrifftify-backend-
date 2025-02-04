@@ -34,7 +34,6 @@ const sendPurchasedemailtoseller = asyncHandler(async (req, res) => {
       itemname,
       buyeraddress
     );
-
     // Respond with success message
     res.status(200).json({ message: `purchased confirmationsent to seller: ${send_to}  ` });
   } catch (error) {
