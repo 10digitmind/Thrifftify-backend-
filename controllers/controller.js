@@ -553,11 +553,11 @@ const updateUser = asyncHandler(async (req, res) => {
       lastname,
       location,
       email,
-      password,
       photo,
       role,
       isVerified,
       about,
+      dob
     } = user;
 
     user.firstname = req.body.firstname || firstname;
@@ -565,9 +565,18 @@ const updateUser = asyncHandler(async (req, res) => {
     user.location = req.body.location || location;
     user.photo = req.body.photo || photo;
     user.phone = req.body.phone || phone;
-    user.role = req.body.role || phone;
+    user.role = req.body.role || role;
     user.about = req.body.about || about;
     user.email = email;
+
+    // Ensure dob remains a Date object
+    if (req.body.dob) {
+      const date =  new Date(req.body.dob);
+    
+      if (!isNaN(date.getTime())) {  // Check if date is valid
+        user.dob = date;
+      }
+    }
 
     const updatedUser = await user.save();
 
@@ -577,11 +586,13 @@ const updateUser = asyncHandler(async (req, res) => {
       location: updatedUser.location,
       phone: updatedUser.phone,
       about: updatedUser.about,
-
       photo: updatedUser.photo,
       role: updatedUser.role,
       isVerified: updatedUser.isVerified,
+      dob: updatedUser.dob // This will return ISO format
     });
+    console.log("DOB from request:", req.body.dob);
+    console.log("Parsed DOB:", user.dob);
   } else {
     res.status(400);
     throw new Error("User not found");

@@ -50,9 +50,9 @@ const Userschmema = mongoose.Schema(
     },
 
     dob: {
-      type: String,
-      
+      type: Date,
       default: null,
+    
     },
     role: {
       type: String,
