@@ -12,6 +12,7 @@ const {idVerificationEmail} = require('../sendemail/idVerificationmail.js')
 const {contactUs} = require('../sendemail/contactus.js')
 const Token = require("../model/tokenmodel.js");
 const Good = require("../model/Goodmodel.js");
+const DeletedUser = require('../model/DeletedUser.js')
 const Review = require("../model/Reviews.js");
 const crypto = require('crypto')
 const CryptoJS = require('crypto-js');
@@ -602,32 +603,46 @@ const updateUser = asyncHandler(async (req, res) => {
 //delete user
 
 const deleteUser = asyncHandler(async (req, res) => {
-  try {
-    const userId = req.params.id;
-
-    // Check if user exists
-    const user = await User.findById(userId);
-    if (!user) {
-      return res.status(400).json({ message: "User not found" });
+ 
+    try {
+      const { id } = req.params;  // Corrected extraction of ID from URL
+      const { reasonForDeletion } = req.body;  // Capture reason for deletion
+  
+      // Check if user exists
+      const user = await User.findById(id);
+  
+      if (!user) {
+        return res.status(404).json({ message: "User not found" });
+      }
+  
+      // Log the user into DeletedUser collection (soft delete)
+      const deletedUser = new DeletedUser({
+        userId: user._id,
+        firstname: user.firstname,
+        lastname: user.lastname,
+        email: user.email,
+        phone: user.phone,
+        location: user.location,
+        reasonForDeletion, // Save reason
+      });
+  
+      await deletedUser.save();  // Save deleted user data
+  
+      console.log("User logged in DeletedUser collection:", deletedUser);
+  
+      // Delete user's goods (optional)
+      await Good.deleteMany({ userId: user._id });
+  
+      // Delete the user from main collection
+      await User.findByIdAndDelete(id);
+  
+      return res.status(200).json({ message: "User and their goods deleted successfully" });
+    } catch (error) {
+      console.error("Error deleting user:", error);
+      res.status(500).json({ message: "Internal server error" });
     }
-
-    // Delete all goods associated with the user
-    await Good.deleteMany({ userId });
-
-    // Delete the user
-    await User.findByIdAndDelete(userId);
-
-    // Respond to the client
-    res
-      .status(200)
-      .json({ message: "User and their goods deleted successfully" });
-  } catch (error) {
-    console.error(error);
-    res.status(500).json({
-      message: "An error occurred while deleting user and their goods",
-    });
-  }
-});
+  });
+  
 
 // getallusers
 const getAllUsers = asyncHandler(async (req, res) => {
