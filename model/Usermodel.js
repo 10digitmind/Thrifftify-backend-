@@ -7,16 +7,21 @@ const Userschmema = mongoose.Schema(
   {
     firstname: {
       type: String,
-      required: [true, "please add a ur name"],
+      required: [true, "please add a ur firstname"],
     },
     lastname: {
       type: String,
-      required: [true, "please add a ur name"],
+      required: [true, "please add a ur lastname"],
     },
 
     location: {
       type: String,
-      required: [true, "please add a ur name"],
+      required: [true, "please add a ur lcoation "],
+    },
+    fullAddress: {
+      default:[],
+      required: [false],
+      type:Array,
     },
     email: {
       type: String,

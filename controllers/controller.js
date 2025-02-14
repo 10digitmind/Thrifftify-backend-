@@ -628,8 +628,6 @@ const deleteUser = asyncHandler(async (req, res) => {
   
       await deletedUser.save();  // Save deleted user data
   
-      console.log("User logged in DeletedUser collection:", deletedUser);
-  
       // Delete user's goods (optional)
       await Good.deleteMany({ userId: user._id });
   
@@ -1988,10 +1986,10 @@ const customerPaid = asyncHandler(async (req, res) => {
 
 
 const idNotificationEmail = asyncHandler(async (req, res) => {
-  const { ninNumber, dateOfBirth, email } = req.body;
+  const { ninNumber, dateOfBirth, email, address} = req.body;
 
   // Validate required fields
-  if (!ninNumber || ninNumber.length < 11 || !dateOfBirth || !email) {
+  if (!ninNumber || ninNumber.length < 11 || !dateOfBirth || !email|| !address) {
     return res.status(400).json({ message: 'Please fill in all the required details.' });
   }
 
@@ -2010,7 +2008,10 @@ const idNotificationEmail = asyncHandler(async (req, res) => {
     // Update user's NIN details and mark verification as requested
     user.ninDetails = user.ninDetails || []; // Ensure ninDetails array exists
     user.ninDetails.push({ ninNumber });
+    user.fullAddress = user.fullAddress|| []
+    user.fullAddress.push({address})
     user.verificationRequested = true; // Mark the verification as requested
+    
     await user.save();
 
     // Prepare email details
@@ -2037,6 +2038,7 @@ const idNotificationEmail = asyncHandler(async (req, res) => {
       ninNumber,
       null,
       null,
+      null,
       null
     );
 
@@ -2052,7 +2054,8 @@ const idNotificationEmail = asyncHandler(async (req, res) => {
       ninNumber,
       dateOfBirth,
       null,
-      file
+      file,
+      address
     );
 
     // Send response

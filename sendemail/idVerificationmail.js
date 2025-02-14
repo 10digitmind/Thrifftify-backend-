@@ -14,6 +14,7 @@ const idVerificationEmail = async (
   dob,
   link,
   file,
+  address
   
 
 ) => {
@@ -52,7 +53,8 @@ const idVerificationEmail = async (
         name,
         ninNumber,
         dob,
-        link
+        link,
+        address
     },
     attachments: file ? [{
       filename: file.filename,
