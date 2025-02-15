@@ -652,6 +652,8 @@ const getAllUsers = asyncHandler(async (req, res) => {
   res.status(200).json(users);
 });
 
+
+
 // login status
 const loginStatus = asyncHandler(async (req, res) => {
   // Retrieve token from the Authorization header
@@ -1153,7 +1155,7 @@ const initialisePayment = asyncHandler(async (req, res) => {
       {
         email,
         amount: amount * 100, // Amount in kobo
-        metadata, // Ensure metadata is a valid JSON object
+        metadata: metadata ? JSON.stringify(metadata) : "{}", // Ensure metadata is a valid JSON object
       },
       {
         headers: {

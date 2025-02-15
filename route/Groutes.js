@@ -104,7 +104,7 @@ router.patch("/api/users/updatealluserinfo",protect, adminOnly, updatealluserinf
 router.delete("/api/users/deleteuser/:id", protect, deleteUser);
 
 // getallusers
-router.get("/api/users/getallusers", protect, author, getAllUsers);
+router.get("/api/users/getallusers", protect, adminOnly, getAllUsers);
 
 // login status
 router.get("/api/users/loginstatus",protect, loginStatus);
