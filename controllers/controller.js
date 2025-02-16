@@ -33,6 +33,7 @@ const { errorMonitor } = require("events");
 const { title } = require("process");
 const path = require('path');
 
+
 //-------------utilities functions
 // genrate toeken function
 const generateToken = (id) => {
@@ -44,25 +45,41 @@ const hashToken = (token) => {
   return crypto.createHash("sha256").update(token.toString()).digest("hex");
 };
 
-//------------------------------------------------------------------- utilities end here
 
-//------ creating api for user
 // create user
 const createUser = asyncHandler(async (req, res) => {
-  const { firstname, lastname, password, email, location, dob } = req.body;
+  const { firstname, lastname, password, contact, location, dob } = req.body;
 
   // Validation
-  if (!firstname || !lastname || !email || !password || !location || !dob) {
+  if (!firstname || !lastname || !contact || !password || !location || !dob) {
     return res.status(400).json({ message: "Please fill in all required fields." });
   }
   if (password.length < 6) {
     return res.status(400).json({ message: "Password must be at least six characters long." });
   }
 
-  // Check if user exists
-  const userExists = await User.findOne({ email });
+  // Regex patterns
+  const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+  const phonePattern = /^(\+234\d{10}|\d{11})$/;
+
+  let email = '';
+  let phone = '';
+  let contactType=''
+
+  if (emailPattern.test(contact)) {
+    email = contact;
+    contactType ="email"
+  } else if (phonePattern.test(contact)) {
+    phone = contact;
+    contactType="phoneNumber"
+  } else {
+    return res.status(400).json({ message: "Invalid email or phone number format." });
+  }
+
+  // Check if user exists (either by email or phone)
+  const userExists = await User.findOne({ $or: [{ email }, { phone }] });
   if (userExists) {
-    return res.status(400).json({ message: "Email already registered. Please log in." });
+    return res.status(400).json({ message: "User already registered. Please log in." });
   }
 
   // Get user agent
@@ -75,8 +92,10 @@ const createUser = asyncHandler(async (req, res) => {
     lastname,
     location,
     email,
+    phone,
     password,
     dob,
+    contactType,
     userAgent,
   });
 
@@ -85,7 +104,7 @@ const createUser = asyncHandler(async (req, res) => {
 
   // If user is created successfully
   if (user) {
-    const { id, lastname, firstname, location, email, photo, role, isVerified, phone, dob } = user;
+    const { id, lastname, firstname, location, email, phone, photo, role, isVerified, dob } = user;
 
     res.status(201).json({
       id,
@@ -93,11 +112,11 @@ const createUser = asyncHandler(async (req, res) => {
       firstname,
       location,
       email,
+      phone,
       photo,
       role,
       isVerified,
       token,
-      phone,
       dob,
     });
   } else {
@@ -327,73 +346,106 @@ const sendVerifyEmail = asyncHandler(async (req, res) => {
   const user = await User.findById(req.user._id);
   if (!user) {
     res.status(400);
-    throw new Error("user  not found, please sign up");
+    throw new Error("User not found, please sign up");
   }
 
   if (user.isVerified) {
     res.status(400);
-    throw new Error("user  already verified");
+    throw new Error("User already verified");
   }
 
-  //delete token if it's in db
+  // Delete existing token if it exists
   let token = await Token.findOne({ userID: user._id });
-
   if (token) {
     await token.deleteOne();
   }
 
-  //create verification token and save
-
+  // Create new verification token
   const verificationToken = crypto.randomBytes(32).toString("hex") + user._id;
-
-
-  // Has token and save
-
-  const hashedtoken = hashToken(verificationToken);
-
-
+  const hashedToken = hashToken(verificationToken);
 
   await new Token({
     userId: user._id,
-    verificationToken: hashedtoken,
+    verificationToken: hashedToken,
     createdAt: Date.now(),
-    expiresAt: Date.now() + 60 * (60 * 1000),
+    expiresAt: Date.now() + 60 * (60 * 1000), // 1-hour expiry
   }).save();
 
-  res.send("token saved");
-
-  //construct verification url
+  // Verification URL
   const verificationUrl = `${process.env.FRONTEND_USER}/verify/${verificationToken}`;
+  console.log("Verification URL:", verificationUrl);
+ 
 
-  // set email to send to user
-
-  const subject = "verify your account - Thritify";
-  const send_to = user.email;
-  const send_from = process.env.EMAIL_USER;
-  const reply_to = "noreply@thritify.com";
-  const template = "verifyemail.";
-  const name = user.name;
-  const link = verificationUrl;
-
-  console.log('usermeail:',user.email)
-
-  //send email
 
   try {
-    await sendEmail(
-      subject,
-      send_to,
-      send_from,
-      reply_to,
-      null,
-      template,
-      name,
-      link
-    );
+    if (user.email) {
+      // ✅ Send Email Verification
+      const subject = "Verify Your Account - Thriftify";
+      const send_to = user.email;
+      const send_from = process.env.EMAIL_USER;
+      const reply_to = "noreply@thriftify.com";
+      const template = "verifyemail.";
+      const name = user.firstname;
+      const link = verificationUrl;
 
-    res.status(200).json({ message: "verification email sent " });
+      await sendEmail(subject, send_to, send_from, reply_to, null, template, name, link);
+      return res.status(200).json({ message: "Verification email sent!" });
+
+    } else if (user.phone) {
+      // let formattedPhoneNumber = user.phone.replace(/\D/g, ""); // Remove non-numeric characters
+      // formattedPhoneNumber = `${formattedPhoneNumber}`;
+     
+      // const data = {
+      //   to: formattedPhoneNumber,
+      //   from: "KAlert",
+      //   sms: "Hi there, testing Termii ",
+      //   type: "plain",
+      //   api_key: process.env.TERMIL_API_KEY, // Ensure this is correctly set
+      //   channel: "generic"
+      // };
+      
+      // axios.post('https://v3.api.termii.com/api/sms/send', (data), {
+      //   headers: { 'Content-Type': 'application/json' }
+      // })
+      // .then(response => {
+      //   console.log("Response:", response);
+      // })
+      // .catch(error => {
+      //   console.error("Error:", error.response ? error.response.data : error.message);
+      // });
+
+// await axios.post(
+//   `https://graph.facebook.com/v22.0/${process.env.WHATSAPP_PHONE_ID}/messages`,
+//   {
+//     messaging_product: "whatsapp",
+//     to: formattedPhoneNumber,
+//     type: "text",
+//     text: {
+//       body: `Hello ${user.firstname}, please use the below link ${verificationUrl} to verify your account `,
+//     },
+    
+//   },
+//   {
+//     headers: {
+//       Authorization: `Bearer ${process.env.WHATSAPP_TOKEN}`,
+//       "Content-Type": "application/json",
+//     },
+//   }
+// );
+
+
+
+
+
+   
+
+      return res.status(200).json({ message: "Verification message sent via WhatsApp!" });
+    } else {
+      return res.status(400).json({ message: "No email or phone number provided!" });
+    }
   } catch (error) {
-    res.status(500).json({ message: "email not sent try again " });
+    console.error("Error sending verification:", error);
+    return res.status(500).json({ message: "Error sending verification. Try again." });
   }
 });
 
@@ -480,7 +532,7 @@ const getUser = asyncHandler(async (req, res) => {
       res.status(404).json({ message: "User not found" });
       return;
     }
-
+    
     const {
       id,
       email,
@@ -859,26 +911,26 @@ const changePassword = asyncHandler(async (req, res) => {
     }
 
     if (!password || !newpassword) {
-      return res.status(400).json({ message: "Enter old and new password" });
+      return res.status(400).json( "Enter old and new password" );
     }
 
     if (newpassword !== cpassword) {
       return res
         .status(400)
-        .json({ message: "Confirm password must match the new password" });
+        .json( "Confirm password must match the new password" );
     }
 
     if (password === newpassword) {
       return res
         .status(400)
-        .json({ message: "New password must be different from the current password" });
+        .json( "New password must be different from the current password");
     }
 
     // Check if the old password is correct
     const passwordIsCorrect = await bcrypt.compare(password, user.password);
 
     if (!passwordIsCorrect) {
-      return res.status(400).json({ message: "Old password is not correct" });
+      return res.status(400).json( "Old password is not correct" );
     }
 
     // Save the new password

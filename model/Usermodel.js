@@ -25,8 +25,7 @@ const Userschmema = mongoose.Schema(
     },
     email: {
       type: String,
-      required: [true, "Please add your email"],
-      unique: true,
+      required: [false],
       trim: true,
       match: [
         /^([\w.%+-]+)@([\w-]+\.)+([\w]{2,})$/,
@@ -45,8 +44,7 @@ const Userschmema = mongoose.Schema(
     },
     phone: {
       type: String,
-      
-      default: "+234",
+      default: '+234',
     },
 
     about: {
@@ -129,6 +127,11 @@ const Userschmema = mongoose.Schema(
       type: Boolean,
       default: false,
     },
+
+    contactType:{
+      type:String,
+      default:''
+    }
    
   },
 
@@ -137,6 +140,21 @@ const Userschmema = mongoose.Schema(
     minimize: false,
   }
 );
+
+
+// Add a compound index for email or phone to be unique
+Userschmema.index(
+  { email: 1, phone: 1 },
+  { unique: true, partialFilterExpression: { $or: [{ email: { $exists: true, $ne: "" } }, { phone: { $exists: true, $ne: "" } }] } }
+);
+
+// Pre-save hook to ensure either email or phone is provided and unique
+Userschmema.pre("save", function (next) {
+  if (!this.email && !this.phone) {
+    return next(new Error("You must provide either an email or a phone number."));
+  }
+  next();
+});
 
 //Ecrpt passwprd before saving to db
 Userschmema.pre('save', async function(next){
