@@ -79,7 +79,7 @@ const createUser = asyncHandler(async (req, res) => {
   // Check if user exists (either by email or phone)
   const userExists = await User.findOne({ $or: [{ email }, { phone }] });
   if (userExists) {
-    return res.status(400).json({ message: "User already registered. Please log in." });
+    return res.status(400).json( "User already registered. Please log in.");
   }
 
   // Get user agent
@@ -400,67 +400,67 @@ const sendVerifyEmail = asyncHandler(async (req, res) => {
       return res.status(200).json({ message: "Verification email sent!" });
 
     } else if (user.phone) {
-      // let formattedPhoneNumber = user.phone.replace(/\D/g, ""); // Remove non-numeric characters
-      // formattedPhoneNumber = `${formattedPhoneNumber}`;
+      let formattedPhoneNumber = user.phone.replace(/\D/g, ""); // Remove non-numeric characters
+      formattedPhoneNumber = `${formattedPhoneNumber}`;
      
-      // const data = {
-      //   to: formattedPhoneNumber,
-      //   from: "KAlert",
-      //   sms: "Hi there, testing Termii ",
-      //   type: "plain",
-      //   api_key: process.env.TERMIL_API_KEY, // Ensure this is correctly set
-      //   channel: "generic"
-      // };
+      const data = {
+        to: formattedPhoneNumber,
+        from: "Thriftiffy",
+        sms: "Hi there, testing Termii ",
+        type: "plain",
+        api_key: process.env.TERMIL_API_KEY, // Ensure this is correctly set
+        channel: "generic"
+      };
       
-      // axios.post('https://v3.api.termii.com/api/sms/send', (data), {
-      //   headers: { 'Content-Type': 'application/json' }
-      // })
-      // .then(response => {
-      //   console.log("Response:", response);
-      // })
-      // .catch(error => {
-      //   console.error("Error:", error.response ? error.response.data : error.message);
-      // });
- let formattedPhoneNumber = user.phone.replace(/\D/g, ""); // Remove non-numeric characters
-         formattedPhoneNumber = `${formattedPhoneNumber}`;
+      axios.post('https://v3.api.termii.com/api/sms/send', (data), {
+        headers: { 'Content-Type': 'application/json' }
+      })
+      .then(response => {
+        console.log("Response:", response);
+      })
+      .catch(error => {
+        console.error("Error:", error.response ? error.response.data : error.message);
+      });
+ // Remove non-numeric characters
+        //  formattedPhoneNumber = `${formattedPhoneNumber}`;
 
-         await axios.post(
-          `https://graph.facebook.com/v22.0/${process.env.WHATSAPP_PHONE_ID}/messages`,
-          {
-            messaging_product: "whatsapp",
-            to: formattedPhoneNumber,
-            type: "template",
-            template: {
-              name: "verifyaccount",
-              language: {
-                code: "en_U"
-              },
-              components: [
-                {
-                  type: "body",
-                  parameters: [
-                    { type: "text", text: user.firstname },
-                    { type: "text", text: "your thriftiffy account" }
-                  ]
-                },
-                {
-                  type: "button",
-                  sub_type: "url",
-                  index: 0,
-                  parameters: [
-                    { type: "text", text: `verify/${verificationToken}` } // Static URL here
-                  ]
-                }
-              ]
-            }
-          },
-          {
-            headers: {
-              Authorization: `Bearer ${process.env.WHATSAPP_TOKEN}`,
-              "Content-Type": "application/json"
-            }
-          }
-        );
+        //  await axios.post(
+        //   `https://graph.facebook.com/v22.0/${process.env.WHATSAPP_PHONE_ID}/messages`,
+        //   {
+        //     messaging_product: "whatsapp",
+        //     to: formattedPhoneNumber,
+        //     type: "template",
+        //     template: {
+        //       name: "verifyaccount",
+        //       language: {
+        //         code: "en_U"
+        //       },
+        //       components: [
+        //         {
+        //           type: "body",
+        //           parameters: [
+        //             { type: "text", text: user.firstname },
+        //             { type: "text", text: "your thriftiffy account" }
+        //           ]
+        //         },
+        //         {
+        //           type: "button",
+        //           sub_type: "url",
+        //           index: 0,
+        //           parameters: [
+        //             { type: "text", text: `verify/${verificationToken}` } // Static URL here
+        //           ]
+        //         }
+        //       ]
+        //     }
+        //   },
+        //   {
+        //     headers: {
+        //       Authorization: `Bearer ${process.env.WHATSAPP_TOKEN}`,
+        //       "Content-Type": "application/json"
+        //     }
+        //   }
+        // );
         
       
 
