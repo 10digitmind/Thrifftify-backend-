@@ -79,7 +79,12 @@ const createUser = asyncHandler(async (req, res) => {
   // Check if user exists (either by email or phone)
   const userExists = await User.findOne({ $or: [{ email }, { phone }] });
   if (userExists) {
-    return res.status(400).json( "User already registered. Please log in.");
+    const token = generateToken(userExists._id);
+    return res.status(404).json({ 
+      message: "User already registered. please Logging in...",
+      token,
+     
+    });
   }
 
   // Get user agent
@@ -585,6 +590,7 @@ const getUser = asyncHandler(async (req, res) => {
       pendingPurchasedAmount,
       userAgent,
       verificationRequested,
+      contactType
     } = user;
 
     const passphrase = process.env.CRYPTO_JS
@@ -616,6 +622,7 @@ const getUser = asyncHandler(async (req, res) => {
       pendingPurchasedAmount,
       userAgent,
       verificationRequested,
+      contactType
     });
     console.log("User response sent successfully");
   } catch (error) {
