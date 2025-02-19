@@ -129,19 +129,26 @@ const createUser = asyncHandler(async (req, res) => {
 const loginUser = asyncHandler(async (req, res) => {
  
   try {
-    const { email, password } = req.body;
+    const { emailOrPhone, password } = req.body;
 
     // Validation
-    if (!email || !password) {
-      return res.status(400).json( "Please provide email and password");
+    if (!emailOrPhone || !password) {
+      return res.status(400).json("Please provide email/phone and password");
     }
 
-    const user = await User.findOne({ email });
+    // Check if input is an email or phone number
+    
+    const isEmail = /\S+@\S+\.\S+/.test(emailOrPhone); // Simple email regex
+    const query = isEmail ? { email: emailOrPhone } : { phone: emailOrPhone };
+
+    const user = await User.findOne( query );
+   
+  
     if (!user) {
       return res.status(401).json( "Invalid email or password." );
     }
 
-    const correctPassword = await bcrypt.compare(password, user.password);
+const correctPassword = await bcrypt.compare(password, user.password);
 
     if (user.role === "suspended" && correctPassword) {
     
@@ -198,7 +205,7 @@ const loginUser = asyncHandler(async (req, res) => {
       firstname,
       lastname,
       location,
-      email,
+      emailOrPhone,
       photo,
       role,
       isVerified,
@@ -374,6 +381,7 @@ const sendVerifyEmail = asyncHandler(async (req, res) => {
   // Verification URL
   const verificationUrl = `${process.env.FRONTEND_USER}/verify/${verificationToken}`;
   console.log("Verification URL:", verificationUrl);
+  const whatsappURL =`/verify/${verificationToken}`
  
 
 
@@ -413,25 +421,48 @@ const sendVerifyEmail = asyncHandler(async (req, res) => {
       // .catch(error => {
       //   console.error("Error:", error.response ? error.response.data : error.message);
       // });
+ let formattedPhoneNumber = user.phone.replace(/\D/g, ""); // Remove non-numeric characters
+         formattedPhoneNumber = `${formattedPhoneNumber}`;
 
-// await axios.post(
-//   `https://graph.facebook.com/v22.0/${process.env.WHATSAPP_PHONE_ID}/messages`,
-//   {
-//     messaging_product: "whatsapp",
-//     to: formattedPhoneNumber,
-//     type: "text",
-//     text: {
-//       body: `Hello ${user.firstname}, please use the below link ${verificationUrl} to verify your account `,
-//     },
-    
-//   },
-//   {
-//     headers: {
-//       Authorization: `Bearer ${process.env.WHATSAPP_TOKEN}`,
-//       "Content-Type": "application/json",
-//     },
-//   }
-// );
+         await axios.post(
+          `https://graph.facebook.com/v22.0/${process.env.WHATSAPP_PHONE_ID}/messages`,
+          {
+            messaging_product: "whatsapp",
+            to: formattedPhoneNumber,
+            type: "template",
+            template: {
+              name: "verifyaccount",
+              language: {
+                code: "en_U"
+              },
+              components: [
+                {
+                  type: "body",
+                  parameters: [
+                    { type: "text", text: user.firstname },
+                    { type: "text", text: "your thriftiffy account" }
+                  ]
+                },
+                {
+                  type: "button",
+                  sub_type: "url",
+                  index: 0,
+                  parameters: [
+                    { type: "text", text: `verify/${verificationToken}` } // Static URL here
+                  ]
+                }
+              ]
+            }
+          },
+          {
+            headers: {
+              Authorization: `Bearer ${process.env.WHATSAPP_TOKEN}`,
+              "Content-Type": "application/json"
+            }
+          }
+        );
+        
+      
 
 
 
@@ -2154,7 +2185,7 @@ const idConfirmationEmail = asyncHandler(async (req, res) => {
     const customerEmail = user.email;
     const idConfirmationTemplate = 'idconfirmationemail.';
     const subject = 'Congratulations!!';
-    const link ='http://localhost:3000/'
+    const link =`${proccess.env.FRONTEND_USER}`
     // Notify customer
     await idVerificationEmail(
       subject,
