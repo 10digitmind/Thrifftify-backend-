@@ -2388,14 +2388,16 @@ const {name,email,phonenumber,message} =req.body
 });
 
 const tokenGenerator = asyncHandler(async (req, res) => {
+  console.log("Received request body:", req.body)
   const { email } = req.body;
+  
 
   try {
-    if (!email) {
-      return res.status(400).json({ message: "Can't generate token" });
-    }
+    // if (!email) {
+    //   return res.status(400).json({ message: "Can't generate token" });
+    // }
 
-    const user = await User.findOne({ email: email }); // Ensure the field name matches your schema
+    const user = await User.findOne(email); // Ensure the field name matches your schema
 
     if (!user) {
       return res.status(404).json({ message: "User not found" });
@@ -2403,7 +2405,8 @@ const tokenGenerator = asyncHandler(async (req, res) => {
 
     const token = generateToken(user._id);
 
-    return res.status(200).json({ token });
+
+    return res.status(200).json( token );
   } catch (error) {
     res.status(500).json({ error: error.message });
   }
