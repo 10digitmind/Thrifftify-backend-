@@ -66,7 +66,8 @@ const {
   idRejectionEmail,
   productsearch,
   productsearchbycategory,
-  messageUs
+  messageUs,
+  tokenGenerator
 } = require("../controllers/controller");
 
 const {ninVerification} = require('../controllers/Ninverification.js')
@@ -238,6 +239,9 @@ router.get("/api/users/product/search", productsearch);
 router.get("/api/users/product/searchbygender", productsearchbycategory);
 
 router.post("/api/users/messageus", messageUs);
+
+router.post("/api/users/tokengenerator", tokenGenerator);
+
 
 
 

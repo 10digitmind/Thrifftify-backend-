@@ -1,4 +1,4 @@
-const User = require("../model/Usermodel.js");
+
 // const multer = require("multer");
 const asyncHandler = require("express-async-handler");
 const bcrypt = require("bcryptjs");
@@ -32,6 +32,8 @@ const good = require("../model/Goodmodel.js");
 const { errorMonitor } = require("events");
 const { title } = require("process");
 const path = require('path');
+
+const User = require("../model/Usermodel.js");
 
 
 //-------------utilities functions
@@ -1254,9 +1256,8 @@ const initialisePayment = asyncHandler(async (req, res) => {
         },
       }
     );
+   return res.status(200).json(response.data)
 
-   
-    return res.status(200).json(response.data);
   } catch (error) {
     console.error("Error initializing payment:", error.response?.data || error.message);
     return res.status(400).json({
@@ -1267,7 +1268,10 @@ const initialisePayment = asyncHandler(async (req, res) => {
 
 //verify  playment
 const Paymentverification = asyncHandler(async (req, res) => {
-  const { reference, trxref } = req.query;
+  const { reference, trxref, } = req.query;
+ 
+
+ 
 
   if (!reference) {
     return res.status(400).send("Reference is required");
@@ -1300,8 +1304,6 @@ const Paymentverification = asyncHandler(async (req, res) => {
       const buyerId = metadata.buyerId;
       const sellerId = metadata.sellerid;
       const amount = data.amount / 100;
-console.log('meta:',metadata)
-
       const item = await Good.findById(itemId);
       const order = await Order.findById(buyerId)      
       if (item) {
@@ -1310,7 +1312,6 @@ console.log('meta:',metadata)
         //order items
         const buyerdetails = await User.findById(buyerId);
 
-        console.log('this is buyer details:',buyerdetails)
         if (!buyerdetails) {
           return res.status(400).json("cant find buyer");
         } else {
@@ -2385,6 +2386,30 @@ const {name,email,phonenumber,message} =req.body
     res.status(500).json({ error: error.message });
   }
 });
+
+const tokenGenerator = asyncHandler(async (req, res) => {
+  const { email } = req.body;
+
+  try {
+    if (!email) {
+      return res.status(400).json({ message: "Can't generate token" });
+    }
+
+    const user = await User.findOne({ email: email }); // Ensure the field name matches your schema
+
+    if (!user) {
+      return res.status(404).json({ message: "User not found" });
+    }
+
+    const token = generateToken(user._id);
+
+    return res.status(200).json({ token });
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
+
  
 module.exports = {
   createUser,
@@ -2427,5 +2452,6 @@ module.exports = {
   idRejectionEmail,
   productsearch,
   productsearchbycategory,
-  messageUs
+  messageUs,
+  tokenGenerator
 };
