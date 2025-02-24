@@ -1322,7 +1322,6 @@ const Paymentverification = asyncHandler(async (req, res) => {
 
         // find seller details and update pending amount
         const sellerdetails = await User.findById(sellerId);
-        console.log('this is seller details:',sellerdetails)
         if (!sellerdetails) {
           return res.status(400).json("cant find seller");
         } else {
