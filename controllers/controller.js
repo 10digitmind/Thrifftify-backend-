@@ -64,28 +64,34 @@ const createUser = asyncHandler(async (req, res) => {
   const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
   const phonePattern = /^(\+234\d{10}|\d{11})$/;
 
-  let email = '';
-  let phone = '';
-  let contactType=''
+  let email = undefined;
+  let phone = undefined;
+  let contactType = '';
 
   if (emailPattern.test(contact)) {
-    email = contact;
-    contactType ="email"
+    email = contact.toLowerCase(); // Ensure email is stored in lowercase
+    contactType = "email";
   } else if (phonePattern.test(contact)) {
     phone = contact;
-    contactType="phoneNumber"
+    contactType = "phoneNumber";
   } else {
     return res.status(400).json({ message: "Invalid email or phone number format." });
   }
 
+  console.log('Searching for user with:', { email, phone });
+
   // Check if user exists (either by email or phone)
-  const userExists = await User.findOne({ $or: [{ email }, { phone }] });
+  const userExists = await User.findOne({ 
+    $or: [{ email: email || null }, { phone: phone || null }] // Avoid empty string searches
+  });
+
+  console.log('User found:', userExists);
+
   if (userExists) {
     const token = generateToken(userExists._id);
-    return res.status(404).json({ 
-      message: "User already registered. please Logging in...",
+    return res.status(409).json({ 
+      message: "User already registered. Please log in...",
       token,
-     
     });
   }
 
@@ -109,27 +115,25 @@ const createUser = asyncHandler(async (req, res) => {
   // Generate token
   const token = generateToken(user._id);
 
-  // If user is created successfully
   if (user) {
-    const { id, lastname, firstname, location, email, phone, photo, role, isVerified, dob } = user;
-
     res.status(201).json({
-      id,
-      lastname,
-      firstname,
-      location,
-      email,
-      phone,
-      photo,
-      role,
-      isVerified,
+      id: user._id,
+      lastname: user.lastname,
+      firstname: user.firstname,
+      location: user.location,
+      email: user.email,
+      phone: user.phone,
+      photo: user.photo,
+      role: user.role,
+      isVerified: user.isVerified,
       token,
-      dob,
+      dob: user.dob,
     });
   } else {
     res.status(400).json({ message: "Invalid user data." });
   }
 });
+
 
 
 //login user
