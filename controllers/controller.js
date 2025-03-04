@@ -52,7 +52,6 @@ const hashToken = (token) => {
 const createUser = asyncHandler(async (req, res) => {
   const { firstname, lastname, password, contact, location, dob } = req.body;
 
-  // Validation
   if (!firstname || !lastname || !contact || !password || !location || !dob) {
     return res.status(400).json({ message: "Please fill in all required fields." });
   }
@@ -60,16 +59,13 @@ const createUser = asyncHandler(async (req, res) => {
     return res.status(400).json({ message: "Password must be at least six characters long." });
   }
 
-  // Regex patterns
   const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
   const phonePattern = /^(\+234\d{10}|\d{11})$/;
 
-  let email = undefined;
-  let phone = undefined;
-  let contactType = '';
+  let email, phone, contactType;
 
   if (emailPattern.test(contact)) {
-    email = contact.toLowerCase(); // Ensure email is stored in lowercase
+    email = contact.toLowerCase();
     contactType = "email";
   } else if (phonePattern.test(contact)) {
     phone = contact;
@@ -80,26 +76,21 @@ const createUser = asyncHandler(async (req, res) => {
 
   console.log('Searching for user with:', { email, phone });
 
-  // Check if user exists (either by email or phone)
-  const userExists = await User.findOne({ 
-    $or: [{ email: email || null }, { phone: phone || null }] // Avoid empty string searches
+  const userExists = await User.findOne({
+    $or: [{ email: email || null }, { phone: phone || null }],
   });
-
-  console.log('User found:', userExists);
 
   if (userExists) {
     const token = generateToken(userExists._id);
-    return res.status(409).json({ 
+    return res.status(409).json({
       message: "User already registered. Please log in...",
       token,
     });
   }
 
-  // Get user agent
   const ua = parser(req.headers["user-agent"]);
   const userAgent = [ua.ua];
 
-  // Create new user
   const user = await User.create({
     firstname,
     lastname,
@@ -112,27 +103,65 @@ const createUser = asyncHandler(async (req, res) => {
     userAgent,
   });
 
-  // Generate token
+  if (!user) {
+    return res.status(400).json({ message: "Invalid user data." });
+  }
+
   const token = generateToken(user._id);
 
-  if (user) {
-    res.status(201).json({
-      id: user._id,
-      lastname: user.lastname,
-      firstname: user.firstname,
-      location: user.location,
-      email: user.email,
-      phone: user.phone,
-      photo: user.photo,
-      role: user.role,
-      isVerified: user.isVerified,
-      token,
-      dob: user.dob,
-    });
-  } else {
-    res.status(400).json({ message: "Invalid user data." });
+  const subject = "New User Signup Alert - Thriftify";
+  const send_to = process.env.ADMIN_EMAIL; // Use env variable
+  const send_from = process.env.EMAIL_USER;
+  const reply_to = "noreply@thritify.com";
+  const template = "signupalert.";
+  const name = user.firstname;
+  
+ 
+  try {
+    await sendEmail(
+      subject,
+      send_to,
+      send_from,
+      reply_to,
+      null,
+      template,
+      name,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      user.email,
+      
+
+   
+    );
+
+    console.log(`Signup alert sent to admin: ${send_to}`);
+  } catch (error) {
+    console.error("Failed to send signup alert:", error.message);
   }
+
+  res.status(201).json({
+    id: user._id,
+    lastname: user.lastname,
+    firstname: user.firstname,
+    location: user.location,
+    email: user.email,
+    phone: user.phone,
+    photo: user.photo,
+    role: user.role,
+    isVerified: user.isVerified,
+    token,
+    dob: user.dob,
+  });
 });
+
 
 
 
