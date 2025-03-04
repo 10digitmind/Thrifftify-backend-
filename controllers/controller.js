@@ -34,6 +34,8 @@ const { title } = require("process");
 const path = require('path');
 
 const User = require("../model/Usermodel.js");
+const cron = require("node-cron");
+const sendVerifyReminders = require('./Cronjobs.js')
 
 
 //-------------utilities functions
@@ -2453,9 +2455,9 @@ const tokenGenerator = asyncHandler(async (req, res) => {
 });
 
 
-
-
-
+// cron job for emmail reminder 
+cron.schedule("0 9,18 * * *", sendVerifyReminders);
+//cron jobs 
 
  
 module.exports = {

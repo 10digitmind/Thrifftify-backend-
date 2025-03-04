@@ -1,11 +1,12 @@
-const cron = require("node-cron");
-const User = require("../model/Usermodel.js"); // Adjust path to your User model
-const { sendEmail } = require("../sendemail/sendemail"); // Adjust path to your email function
+require("dotenv").config();  // Load environment variables
 
-// Schedule a job to run at 9 AM and 6 PM daily
-cron.schedule("*/5 * * * *", async () => {
+const cron = require("node-cron");
+const User = require("../model/Usermodel.js");  // Adjust path to your User model
+const { sendEmail } = require("../sendemail/sendemail.js");  // Adjust path to your sendEmail function
+
+async function sendVerificationReminders() {
   try {
-    console.log("🔄 Running Cron Job: Sending verification reminders...");
+    console.log("🔄 Cron Job is running...");
 
     // Find users who signed up but haven't verified their account
     const unverifiedUsers = await User.find({ idVerified: false });
@@ -20,7 +21,7 @@ cron.schedule("*/5 * * * *", async () => {
       const send_to = user.email;
       const send_from = process.env.EMAIL_USER;
       const reply_to = "noreply@thritify.com";
-      const template = "verificationreminder"; // Ensure template name is correct
+      const template = "verificationreminder.";  // Ensure template name is correct
       const name = user.firstname;
       const link = `${process.env.FRONTEND_USER}/verify/${user._id}`;
 
@@ -54,4 +55,11 @@ cron.schedule("*/5 * * * *", async () => {
   } catch (error) {
     console.error("❌ Error running cron job:", error.message);
   }
-});
+}
+
+// Schedule the cron job to run at 9 AM and 6 PM every day
+
+
+module.exports = sendVerificationReminders
+// Optionally run the cron job immediately on script load
+
