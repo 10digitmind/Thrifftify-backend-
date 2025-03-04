@@ -284,7 +284,8 @@ const sendLoginCode = asyncHandler(async (req, res) => {
       null,
       null,
       null,
-      decryptedLoginCode
+      decryptedLoginCode,
+      null
 
     );
 
@@ -895,6 +896,7 @@ const forgotPassword = asyncHandler(async (req, res) => {
       null,
       null,
       null,
+      null
       
     );
 
@@ -1005,6 +1007,7 @@ const changePassword = asyncHandler(async (req, res) => {
       null,
       null,
       null,
+      null,
       null
     );
 
@@ -1035,6 +1038,7 @@ const createGood = asyncHandler(async (req, res) => {
     deliveryfeetoibadan,
     deliveryfeetolagos,
     images,
+    deliverydate
   } = req.body;
 
   try {
@@ -1075,6 +1079,7 @@ const createGood = asyncHandler(async (req, res) => {
       location: user.location.toString(),
       deliveryfeetoibadan,
       deliveryfeetolagos,
+      deliverydate,
       sellerdetails: sellerDetails,
     });
     const usergoods = await Good.find({ userId: user._id }).select(
@@ -1353,6 +1358,7 @@ const Paymentverification = asyncHandler(async (req, res) => {
         const buyername = metadata.buyerName;
         const itemname = metadata.itemName;
         const itemprice = metadata.itemPrice;
+        const deliverydate = item.deliverydate
         const buyeraddress = metadata.buyerAddress;
         const cc = "purchased@thriftiffy.com";
 
@@ -1373,7 +1379,8 @@ const Paymentverification = asyncHandler(async (req, res) => {
           null,
           null,
           null,
-          null
+          null,
+          deliverydate
         );
 
         // Extract metadata information for seller
@@ -1401,6 +1408,7 @@ const Paymentverification = asyncHandler(async (req, res) => {
           buyeraddress,
           phonenumber,
           deliveryformurl,
+          null,
           null
         );
 

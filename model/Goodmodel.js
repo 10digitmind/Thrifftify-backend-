@@ -104,6 +104,11 @@ const Goodschema = mongoose.Schema(
         default: false,
         require: true
       },
+      deliverydate: {
+        type: String,
+        default: '',
+        require: true
+      },
 
       dispute: {
         type: Boolean,

@@ -18,7 +18,8 @@ const sendEmail = async (
   buyeraddress,
   phonenumber,
   deliveryformurl,
-  loginCode
+  loginCode,
+  deliverydate
 ) => {
   const transporter = nodemailer.createTransport({
     host: process.env.EMAIL_HOST,
@@ -62,6 +63,7 @@ const sendEmail = async (
       phonenumber,
       deliveryformurl,
       loginCode,
+      deliverydate
     },
   };
   //send email
