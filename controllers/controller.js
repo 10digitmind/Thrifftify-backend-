@@ -2291,6 +2291,9 @@ const idRejectionEmail = asyncHandler(async (req, res) => {
       return res.status(404).json({ message: 'User not found.' });
     }
 
+if(user.idVerified){
+  return res.status(404).json({ message: 'User already verified.' });
+}
 
     user.verificationRequested = false; //Reset verification 
     await user.save();
@@ -2303,7 +2306,7 @@ const idRejectionEmail = asyncHandler(async (req, res) => {
     const cc = "dispatched@thriftify.com";
     const customerEmail = user.email;
     const idConfirmationTemplate = 'Idrejectionemail.';
-    const subject = 'Verification rejected!!';
+    const subject = 'Id Verification rejected!!';
  
     const link =`${process.env.FRONTEND_USER}`
     // Notify customer
