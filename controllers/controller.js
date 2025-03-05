@@ -772,13 +772,24 @@ const deleteUser = asyncHandler(async (req, res) => {
 
 // getallusers
 const getAllUsers = asyncHandler(async (req, res) => {
-  const users = await User.find().sort("-createdAt").select("-password");
+  try {
+    // Fetch users sorted by creation date and exclude the password field
+    const users = await User.find().sort("-createdAt").select("-password");
 
-  if (!users) {
-    res.status(500).json({ message: "somethig went reson " });
+    // Check if users array is empty
+    if (users.length === 0) {
+      return res.status(404).json({ message: "No users found" });
+    }
+
+    // Return users
+    res.status(200).json(users);
+  } catch (error) {
+    // Handle any server errors
+    console.error(error);
+    res.status(500).json({ message: "Something went wrong", error: error.message });
   }
-  res.status(200).json(users);
 });
+
 
 
 
@@ -2235,7 +2246,7 @@ const idConfirmationEmail = asyncHandler(async (req, res) => {
     const customerEmail = user.email;
     const idConfirmationTemplate = 'idconfirmationemail.';
     const subject = 'Congratulations!!';
-    const link =`${proccess.env.FRONTEND_USER}`
+    const link =`${process.env.FRONTEND_USER}`
     // Notify customer
     await idVerificationEmail(
       subject,

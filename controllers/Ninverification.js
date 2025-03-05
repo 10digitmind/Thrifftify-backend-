@@ -9,7 +9,6 @@ const Jimp = require("jimp");
 const User = require("../model/Usermodel");
 
 
-
 const removeLastCharacter = (str) => {
   const match = str.match(/(.*)./);
   return match ? match[1] : str;
