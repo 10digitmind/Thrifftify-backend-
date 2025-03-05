@@ -2159,7 +2159,7 @@ const idNotificationEmail = asyncHandler(async (req, res) => {
     const subject = 'ID Verification Request';
     const adminTemplate = 'adminidverificationemail.';
     const file = req.file;  // Assuming req.file contains the uploaded file
-    const adminEmail = 'olubodekehinde2019@outlook.com';
+    const adminEmail = process.env.ADMIN_EMAIL;
 
     // Notify customer
     await idVerificationEmail(
