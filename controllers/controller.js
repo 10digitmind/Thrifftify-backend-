@@ -29,13 +29,13 @@ const {
 const axios = require("axios");
 const Order = require("../model/Ordersmodel.js");
 const good = require("../model/Goodmodel.js");
-const { errorMonitor } = require("events");
+
 const { title } = require("process");
 const path = require('path');
 
 const User = require("../model/Usermodel.js");
 const cron = require("node-cron");
-const sendVerifyReminders = require('./Cronjobs.js')
+const {sendVerificationReminders,listingNotification} = require('./Cronjobs.js')
 
 
 //-------------utilities functions
@@ -2470,7 +2470,12 @@ const tokenGenerator = asyncHandler(async (req, res) => {
 
 
 // cron job for emmail reminder 
-cron.schedule("0 9,18 * * *", sendVerifyReminders);
+cron.schedule("0 8,13,18 * * *", async () => {
+  await sendVerificationReminders();
+  await listingNotification();
+  console.log("📆 Cron jobs executed at 9 AM & 6 PM.");
+});
+
 //cron jobs 
 
  
