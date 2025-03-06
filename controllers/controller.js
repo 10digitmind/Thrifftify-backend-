@@ -513,7 +513,7 @@ const sendVerifyEmail = asyncHandler(async (req, res) => {
 
    
 
-      return res.status(200).json({ message: "Verification message sent via WhatsApp!" });
+      return res.status(200).json({ message: "Verification message sent!" });
     } else {
       return res.status(400).json({ message: "No email or phone number provided!" });
     }
