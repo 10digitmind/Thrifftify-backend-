@@ -140,11 +140,11 @@ async function firstListingNotification(userId) {
       console.log(`⚠️ User ${user.email} has made their first listing.`);
 
       // Send email notification
-      const subject = "Start Selling on Thriftify!";
+      const subject = "congratulation on your firstlisting!";
       const send_to = user.email;
       const send_from = process.env.EMAIL_USER;
       const reply_to = "noreply@thritify.com";
-      const template = "firstlisting"; // Removed period
+      const template = "firstlisting."; // Removed period
       const name = user.firstname;
       const link = `${process.env.FRONTEND_USER}/profilepage`; // Corrected variable
 
