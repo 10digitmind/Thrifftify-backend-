@@ -79,13 +79,13 @@ async function listingNotification() {
         console.log(`⚠️ User ${user.email} is verified but has no listings.`);
 
         // Send email notification
-        const subject = "Start Selling on Thriftify & Win ₦2,000!";
+        const subject = "Start Selling on Thriftify!";
         const send_to = user.email;
         const send_from = process.env.EMAIL_USER;
         const reply_to = "noreply@thritify.com";
         const template = "listingremider."; // Removed period
         const name = user.firstname;
-        const link = `${process.env.FRONTEND_USER}/sellnow`; // Corrected variable
+        const link = `${process.env.FRONTEND_USER}/sellform`; // Corrected variable
 
         try {
           await sendEmail(
@@ -127,6 +127,8 @@ cron.schedule("0 9,18 * * *", async () => {
   await sendVerificationReminders();
   await listingNotification();
   console.log("📆 Cron jobs executed at 9 AM & 6 PM.");
+
 });
+
 
 module.exports = { sendVerificationReminders, listingNotification };
