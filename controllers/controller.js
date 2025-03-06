@@ -36,6 +36,7 @@ const path = require('path');
 const User = require("../model/Usermodel.js");
 const cron = require("node-cron");
 
+const {sendVerificationReminders,listingNotification,firstListingNotification} = require('../controllers/Cronjobs.js')
 
 
 //-------------utilities functions
@@ -1127,13 +1128,13 @@ const createGood = asyncHandler(async (req, res) => {
     const usergoods = await Good.find({ userId: user._id }).select(
       "-allusergoods"
     );
-    if (!usergoods || usergoods.length === 0) {
-
-    }
-
+  
     good.allusergoods = usergoods;
 
     await good.save();
+    if (usergoods.length === 1) {
+      await firstListingNotification(user._id);
+    }
 
     if (good) {
   
@@ -2470,6 +2471,13 @@ const tokenGenerator = asyncHandler(async (req, res) => {
 
 
 // cron job for emmail reminder 
+cron.schedule("0 9,18 * * *", async () => {
+  await sendVerificationReminders();
+  await listingNotification();
+  console.log("📆 Cron jobs executed at 9 AM & 6 PM.");
+
+});
+
 
 
 

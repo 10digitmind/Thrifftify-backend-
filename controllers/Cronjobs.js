@@ -18,13 +18,13 @@ async function sendVerificationReminders() {
     }
 
     for (const user of unverifiedUsers) {
-      const subject = "Verify Your Thriftify Account & Win ₦2,000!";
+      const subject = "Verify Your Thriftify ";
       const send_to = user.email;
       const send_from = process.env.EMAIL_USER;
       const reply_to = "noreply@thritify.com";
       const template = "verificationreminder."; // Removed period
       const name = user.firstname;
-      const link = `${process.env.FRONTEND_USER}/verify/${user._id}`;
+      const link = `${process.env.FRONTEND_USER}/sellform`;
 
       try {
         await sendEmail(
@@ -122,13 +122,71 @@ async function listingNotification() {
   }
 }
 
-// Schedule the cron job to run at 9 AM and 6 PM every day
-cron.schedule("0 9,18 * * *", async () => {
-  await sendVerificationReminders();
-  await listingNotification();
-  console.log("📆 Cron jobs executed at 9 AM & 6 PM.");
-
-});
 
 
-module.exports = { sendVerificationReminders, listingNotification };
+async function firstListingNotification(userId) {
+  try {
+    console.log("🔄 Checking first listing for user...");
+
+    // Find the user
+    const user = await User.findById(userId);
+    if (!user || !user.idVerified) return; // Ensure the user exists and is verified
+
+    // Find goods belonging to the user
+    const usergoods = await Good.find({ userId: user._id });
+
+    // Check if the user has exactly 1 listed item (first listing)
+    if (usergoods.length === 1) {
+      console.log(`⚠️ User ${user.email} has made their first listing.`);
+
+      // Send email notification
+      const subject = "Start Selling on Thriftify!";
+      const send_to = user.email;
+      const send_from = process.env.EMAIL_USER;
+      const reply_to = "noreply@thritify.com";
+      const template = "firstlisting"; // Removed period
+      const name = user.firstname;
+      const link = `${process.env.FRONTEND_USER}/profilepage`; // Corrected variable
+
+      try {
+        await sendEmail(
+          subject,
+          send_to,
+          send_from,
+          reply_to,
+          null,
+          template,
+          name,
+          link,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null
+        );
+
+        console.log(`📧 First listing notification sent to: ${send_to}`);
+      } catch (error) {
+        console.error(`❌ Failed to send first listing notification to ${send_to}:`, error.message);
+      }
+    }
+  } catch (error) {
+    console.error("❌ Error running first listing notification:", error.message);
+  }
+}
+
+
+
+
+
+
+
+
+
+
+module.exports = { sendVerificationReminders, listingNotification ,firstListingNotification};
