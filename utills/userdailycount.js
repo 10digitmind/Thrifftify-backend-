@@ -9,11 +9,4 @@ const countSignupsPerDay = async (date) => {
     return count;
   };
   
-
-
-
-
-
-
-
 module.exports = countSignupsPerDay

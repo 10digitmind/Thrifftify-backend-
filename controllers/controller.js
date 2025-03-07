@@ -2096,7 +2096,7 @@ const customerPaid = asyncHandler(async (req, res) => {
   const userEmail = user.email;
   const sentFrom = process.env.EMAIL_USER;
   const replyTo = "noreply@thriftify.com";
-  const cc = "dispatched@thriftify.com";
+  const cc = "dispatched@thriftiffy.com";
   const amount = amountPaid; // Corrected variable name
 
   // Send confirmation email
@@ -2168,7 +2168,7 @@ const idNotificationEmail = asyncHandler(async (req, res) => {
     const name = `${user.firstname} ${user.lastname}`;
     const sentFrom = process.env.EMAIL_USER;
     const replyTo = "noreply@thriftify.com";
-    const cc = "dispatched@thriftify.com";
+    const cc = "dispatched@thriftiffy.com";
     const customerEmail = user.email;
     const customerTemplate = 'idverification.';
     const subject = 'ID Verification Request';
@@ -2246,7 +2246,7 @@ const idConfirmationEmail = asyncHandler(async (req, res) => {
     const name = `${user.firstname} ${user.lastname}`;
     const sentFrom = process.env.EMAIL_USER;
     const replyTo = "noreply@thriftify.com";
-    const cc = "dispatched@thriftify.com";
+    const cc = "dispatched@thriftiffy.com";
     const customerEmail = user.email;
     const idConfirmationTemplate = 'idconfirmationemail.';
     const subject = 'Congratulations!!';
@@ -2307,7 +2307,7 @@ if(user.idVerified){
     const name = `${user.firstname} ${user.lastname}`;
     const sentFrom = process.env.EMAIL_USER;
     const replyTo = "noreply@thriftify.com";
-    const cc = "dispatched@thriftify.com";
+    const cc = "dispatched@thriftiffy.com";
     const customerEmail = user.email;
     const idConfirmationTemplate = 'Idrejectionemail.';
     const subject = 'Id Verification rejected!!';
@@ -2498,6 +2498,7 @@ cron.schedule("0 9,18 * * *", async () => {
   console.log("📆 Cron jobs executed at 9 AM & 6 PM.");
 
 });
+
 
 
 
