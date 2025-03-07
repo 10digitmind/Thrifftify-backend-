@@ -38,6 +38,9 @@ const cron = require("node-cron");
 
 const {sendVerificationReminders,listingNotification,firstListingNotification} = require('../controllers/Cronjobs.js')
 
+const saveDailySignupCount = require('../utills/savedailysignupcount.js')
+
+const countSignupsPerDay = require('../utills/userdailycount.js')
 
 //-------------utilities functions
 // genrate toeken function
@@ -2470,6 +2473,24 @@ const tokenGenerator = asyncHandler(async (req, res) => {
 });
 
 
+
+
+
+
+
+const countSignupsPerDayAPI = asyncHandler(async (req, res) => {
+  try {
+    const today = new Date();
+    const count = await countSignupsPerDay(today);
+    res.json({ signupsToday: count });
+  } catch (error) {
+    console.error('Error in countSignupsPerDayAPI:', error);  // Log error details
+    res.status(500).json({ error: 'Server error', details: error.message });
+  }
+});
+
+
+
 // cron job for emmail reminder 
 cron.schedule("0 9,18 * * *", async () => {
   await sendVerificationReminders();
@@ -2477,6 +2498,12 @@ cron.schedule("0 9,18 * * *", async () => {
   console.log("📆 Cron jobs executed at 9 AM & 6 PM.");
 
 });
+
+
+
+// Run at midnight every day
+cron.schedule('0 0 * * *', saveDailySignupCount);
+
 
 
 
@@ -2526,5 +2553,6 @@ module.exports = {
   productsearch,
   productsearchbycategory,
   messageUs,
-  tokenGenerator
+  tokenGenerator,
+  countSignupsPerDayAPI
 };
