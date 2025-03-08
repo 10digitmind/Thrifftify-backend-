@@ -2492,18 +2492,19 @@ const countSignupsPerDayAPI = asyncHandler(async (req, res) => {
 
 
 // cron job for emmail reminder 
-cron.schedule("0 9,18 * * *", async () => {
+cron.schedule("0 14 * * *", async () => {
   await sendVerificationReminders();
   await listingNotification();
-  console.log("📆 Cron jobs executed at 9 AM & 6 PM.");
-
+  console.log("📆 Cron jobs executed at 2 PM.");
 });
 
 
 
 
+
 // Run at midnight every day
-cron.schedule('0 0 * * *', saveDailySignupCount);
+cron.schedule('50 23 * * *', saveDailySignupCount);
+
 
 
 
