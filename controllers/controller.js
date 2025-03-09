@@ -2243,7 +2243,7 @@ const idConfirmationEmail = asyncHandler(async (req, res) => {
     await user.save();
 
     // Prepare email details
-    const name = `${user.firstname} ${user.lastname}`;
+    const name = `${user.firstname}`;
     const sentFrom = process.env.EMAIL_USER;
     const replyTo = "noreply@thriftify.com";
     const cc = "dispatched@thriftiffy.com";
@@ -2263,7 +2263,8 @@ const idConfirmationEmail = asyncHandler(async (req, res) => {
       null,
       null,
       link,
-      null
+      null,
+      
   
     );
 
