@@ -2136,11 +2136,30 @@ const customerPaid = asyncHandler(async (req, res) => {
 
 
 const idNotificationEmail = asyncHandler(async (req, res) => {
-  const { ninNumber, dateOfBirth, email, address} = req.body;
+  
+  const { verificationType, ninNumber, dob, email, address } = req.body;
+  const files = req.files; // Get uploaded files
 
   // Validate required fields
-  if (!ninNumber || ninNumber.length < 11 || !dateOfBirth || !email|| !address) {
+  if (!verificationType || !email || !address || !dob) {
     return res.status(400).json({ message: 'Please fill in all the required details.' });
+  }
+
+  // If verification type is NIN, validate NIN
+  if (verificationType === "nin") {
+    if (!ninNumber || ninNumber.length !== 11) {
+      return res.status(400).json({ message: 'NIN must be exactly 11 digits.' });
+    }
+    if (!files || files.length < 1) {
+      return res.status(400).json({ message: 'Proof of Address is required for NIN verification.' });
+    }
+  }
+
+  // If verification type is ID, require two uploaded files
+  if (verificationType === "id") {
+    if (!files || files.length < 2) {
+      return res.status(400).json({ message: 'Both ID document and Proof of Address are required for ID verification.' });
+    }
   }
 
   try {
@@ -2155,13 +2174,16 @@ const idNotificationEmail = asyncHandler(async (req, res) => {
       return res.status(400).json({ message: 'You have already requested ID verification.' });
     }
 
-    // Update user's NIN details and mark verification as requested
-    user.ninDetails = user.ninDetails || []; // Ensure ninDetails array exists
-    user.ninDetails.push({ ninNumber });
-    user.fullAddress = user.fullAddress|| []
-    user.fullAddress.push({address})
-    user.verificationRequested = true; // Mark the verification as requested
-    
+    // Update user details based on verification type
+    user.fullAddress = user.fullAddress || [];
+    user.fullAddress.push({ address });
+
+    if (verificationType === "nin") {
+      user.ninDetails = user.ninDetails || [];
+      user.ninDetails.push({ ninNumber });
+    } 
+
+    user.verificationRequested = true;
     await user.save();
 
     // Prepare email details
@@ -2170,11 +2192,10 @@ const idNotificationEmail = asyncHandler(async (req, res) => {
     const replyTo = "noreply@thriftify.com";
     const cc = "dispatched@thriftiffy.com";
     const customerEmail = user.email;
-    const customerTemplate = 'idverification.';
     const subject = 'ID Verification Request';
-    const adminTemplate = 'adminidverificationemail.';
-    const file = req.file;  // Assuming req.file contains the uploaded file
     const adminEmail = process.env.ADMIN_EMAIL;
+
+    console.log('Uploaded Files:', files);
 
     // Notify customer
     await idVerificationEmail(
@@ -2183,9 +2204,9 @@ const idNotificationEmail = asyncHandler(async (req, res) => {
       sentFrom,
       replyTo,
       cc,
-      customerTemplate,
+      "idverification.",
       name,
-      ninNumber,
+      ninNumber || "N/A",
       null,
       null,
       null,
@@ -2199,12 +2220,12 @@ const idNotificationEmail = asyncHandler(async (req, res) => {
       sentFrom,
       replyTo,
       cc,
-      adminTemplate,
+      "adminidverificationemail.",
       name,
-      ninNumber,
-      dateOfBirth,
+      ninNumber || "N/A",
+      dob,
       null,
-      file,
+      files,
       address
     );
 
@@ -2218,6 +2239,7 @@ const idNotificationEmail = asyncHandler(async (req, res) => {
     res.status(500).json({ message: "An error occurred while processing your request." });
   }
 });
+
 
 const idConfirmationEmail = asyncHandler(async (req, res) => {
   const { email } = req.body;
@@ -2500,7 +2522,7 @@ cron.schedule("0 14 * * *", async () => {
 });
 
 
-
+listingNotification();
 
 
 // Run at midnight every day

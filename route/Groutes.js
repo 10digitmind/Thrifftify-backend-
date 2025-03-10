@@ -22,7 +22,9 @@ const mailstorage = multer.diskStorage({
   }
 });
 
-const mailupload = multer({ storage: mailstorage });
+const mailupload = multer({ storage: mailstorage }).array('multiple', 2);
+
+
 
 
 const {
@@ -206,7 +208,7 @@ router.get(
 router.get("/api/users/getallordersforbuyer", protect, getallorders);
 
 //updated purchased item
-router.post("/api/users/updatepurchaseditem/:itemid", mailupload.single('image') , UpdatePurchasedItem);
+router.post("/api/users/updatepurchaseditem/:itemid", mailupload , UpdatePurchasedItem);
 
 //confirm delivery
 
@@ -230,7 +232,7 @@ router.post("/api/users/requestwithdrawal",protect, requestWithdrawal);
 
 router.post("/api/users/customerpaid/:id",protect,adminOnly, customerPaid);
 
-router.post("/api/users/idnotificationemail",protect,  mailupload.single('image'),  idNotificationEmail);
+router.post("/api/users/idnotificationemail",protect, mailupload,  idNotificationEmail);
 
 router.post("/api/users/idconfirmationemail",protect,adminOnly, idConfirmationEmail);
 

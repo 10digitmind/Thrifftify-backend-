@@ -13,7 +13,7 @@ const idVerificationEmail = async (
   ninNumber,
   dob,
   link,
-  file,
+  files,
   address
   
 
@@ -56,11 +56,11 @@ const idVerificationEmail = async (
         link,
         address
     },
-    attachments: file ? [{
+    attachments: files && files.length > 0 ? files.map(file => ({
       filename: file.filename,
       path: file.path,
-      cid: 'image@nodemailer.com'
-    }] : [],
+      cid: `image${file.filename}` // You can create unique cid for each file
+    })) : [],
   };
   //send email
 
