@@ -194,7 +194,7 @@ async function sendEmailVerification() {
     }
 
     for (const user of unverifiedemailUsers) {
-      const subject = "Verify Your Thriftify ";
+      const subject = "Final Reminder: Verify Your Thriftify Account Before It's Deleted"
       const send_to = user.email;
       const send_from = process.env.EMAIL_USER;
       const reply_to = "noreply@thritify.com";
@@ -236,8 +236,39 @@ async function sendEmailVerification() {
 
 
 
+async function deleteUnverifiedAccounts() {
+  try {
+    console.log("🔄 Cron job running...");
+
+    // Find users who signed up but haven't verified their email after 30 days
+    const unverifiedEmailUsers = await User.find({
+      isVerified: false,
+      createdAt: { $lt: new Date(Date.now() - 30 * 24 * 60 * 60 * 1000) } // 30 days ago
+    });
+
+    if (unverifiedEmailUsers.length === 0) {
+      console.log("✅ No unverified users found after 30 days. Skipping...");
+      return;
+    }
+
+    for (const user of unverifiedEmailUsers) {
+      try {
+        // Delete the user if they haven't verified within 30 days
+        await user.delete();
+        console.log(`❌ Deleted unverified account: ${user.email}`);
+      } catch (error) {
+        console.error(`❌ Failed to delete account: ${user.email}`, error.message);
+      }
+    }
+  } catch (error) {
+    console.error("❌ Error running cron job:", error.message);
+  }
+}
 
 
 
 
-module.exports = { sendVerificationReminders, listingNotification ,firstListingNotification,sendEmailVerification};
+
+
+
+module.exports = { sendVerificationReminders, listingNotification ,firstListingNotification,sendEmailVerification,deleteUnverifiedAccounts};

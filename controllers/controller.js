@@ -36,7 +36,7 @@ const path = require('path');
 const User = require("../model/Usermodel.js");
 const cron = require("node-cron");
 
-const {sendVerificationReminders,listingNotification,firstListingNotification,sendEmailVerification} = require('../controllers/Cronjobs.js')
+const {sendVerificationReminders,listingNotification,firstListingNotification,sendEmailVerification,deleteUnverifiedAccounts} = require('../controllers/Cronjobs.js')
 
 const saveDailySignupCount = require('../utills/savedailysignupcount.js')
 
@@ -2524,6 +2524,11 @@ const countSignupsPerDayAPI = asyncHandler(async (req, res) => {
 
 // Run at midnight every day
 cron.schedule('50 23 * * *', saveDailySignupCount);
+
+// account deletion after 30 days of sign up 
+
+
+cron.schedule("0 0 * * *", deleteUnverifiedAccounts);
 
 
 
