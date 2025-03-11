@@ -36,7 +36,7 @@ const path = require('path');
 const User = require("../model/Usermodel.js");
 const cron = require("node-cron");
 
-const {sendVerificationReminders,listingNotification,firstListingNotification} = require('../controllers/Cronjobs.js')
+const {sendVerificationReminders,listingNotification,firstListingNotification,sendEmailVerification} = require('../controllers/Cronjobs.js')
 
 const saveDailySignupCount = require('../utills/savedailysignupcount.js')
 
@@ -1142,7 +1142,6 @@ const createGood = asyncHandler(async (req, res) => {
     if (good) {
   
       res.status(201).json({ good });
-
    
     } else {
     
@@ -2515,14 +2514,12 @@ const countSignupsPerDayAPI = asyncHandler(async (req, res) => {
 
 
 // cron job for emmail reminder 
-cron.schedule("0 14 * * *", async () => {
-  await sendVerificationReminders();
-  await listingNotification();
-  console.log("📆 Cron jobs executed at 2 PM.");
-});
+// cron.schedule("0 14 * * *", async () => {
+//   await sendVerificationReminders();
+//   await listingNotification();
+//   console.log("📆 Cron jobs executed at 2 PM.");
+// });
 
-
-listingNotification();
 
 
 // Run at midnight every day

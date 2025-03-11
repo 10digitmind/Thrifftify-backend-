@@ -181,6 +181,58 @@ async function firstListingNotification(userId) {
 }
 
 
+async function sendEmailVerification() {
+  try {
+    console.log("🔄 Cron Job is running...");
+
+    // Find users who signed up but haven't verified their account
+    const unverifiedemailUsers = await User.find({ isVerified: false });
+
+    if (unverifiedemailUsers.length === 0) {
+      console.log("✅ No unverified users found. Skipping...");
+      return;
+    }
+
+    for (const user of unverifiedemailUsers) {
+      const subject = "Verify Your Thriftify ";
+      const send_to = user.email;
+      const send_from = process.env.EMAIL_USER;
+      const reply_to = "noreply@thritify.com";
+      const template = "emailverificationreminder."; // Removed period
+      const name = user.firstname;
+      const link = `${process.env.FRONTEND_USER}`;
+
+      try {
+        await sendEmail(
+          subject,
+          send_to,
+          send_from,
+          reply_to,
+          null,
+          template,
+          name,
+          link,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null
+        );
+
+        console.log(`📧 Verification reminder sent to: ${send_to}`);
+      } catch (error) {
+        console.error(`❌ Failed to send verification reminder to ${send_to}:`, error.message);
+      }
+    }
+  } catch (error) {
+    console.error("❌ Error running cron job:", error.message);
+  }
+}
 
 
 
@@ -188,5 +240,4 @@ async function firstListingNotification(userId) {
 
 
 
-
-module.exports = { sendVerificationReminders, listingNotification ,firstListingNotification};
+module.exports = { sendVerificationReminders, listingNotification ,firstListingNotification,sendEmailVerification};
