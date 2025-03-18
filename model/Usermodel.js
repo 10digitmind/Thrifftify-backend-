@@ -7,25 +7,29 @@ const Userschmema = mongoose.Schema(
   {
     firstname: {
       type: String,
-      required: [true, "please add a ur firstname"],
+     default:""
     },
     lastname: {
       type: String,
-      required: [true, "please add a ur lastname"],
+     default:''
+    },
+    username: {
+      type: String,
+     default:""
     },
 
     location: {
       type: String,
-      required: [true, "please add a ur lcoation "],
+     default:''
     },
     fullAddress: {
       default:[],
-      required: [false],
+     
       type:Array,
     },
     email: {
       type: String,
-      required: [false],
+      required: [true],
       trim: true,
       match: [
         /^([\w.%+-]+)@([\w-]+\.)+([\w]{2,})$/,
@@ -39,7 +43,6 @@ const Userschmema = mongoose.Schema(
     },
     photo: {
       type: String,
-      require: [true, "please add a  photo"],
       default: "",
     },
     phone: {

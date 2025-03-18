@@ -9,11 +9,11 @@ const deletedUserSchema = new mongoose.Schema({
   },
   firstname: {
     type: String,
-    required: true,
+  
   },
   lastname: {
     type: String,
-    required: true,
+    
   },
   email: {
     type: String,
@@ -21,11 +21,11 @@ const deletedUserSchema = new mongoose.Schema({
   },
   phone: {
     type: String,
-    required: true,
+  
   },
   location: {
     type: String,
-    required: true,
+  
   },
   reasonForDeletion: {
     type: String, // Optional, track reason for deletion (e.g., "user requested")

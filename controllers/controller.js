@@ -53,14 +53,14 @@ const hashToken = (token) => {
   return crypto.createHash("sha256").update(token.toString()).digest("hex");
 };
 
-
 // create user
 const createUser = asyncHandler(async (req, res) => {
-  const { firstname, lastname, password, contact, location, dob } = req.body;
+  const { username, password, contact } = req.body;
 
-  if (!firstname || !lastname || !contact || !password || !location || !dob) {
+  if (!username || !contact || !password) {
     return res.status(400).json({ message: "Please fill in all required fields." });
   }
+
   if (password.length < 6) {
     return res.status(400).json({ message: "Password must be at least six characters long." });
   }
@@ -68,7 +68,9 @@ const createUser = asyncHandler(async (req, res) => {
   const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
   const phonePattern = /^(\+234\d{10}|\d{11})$/;
 
-  let email, phone, contactType;
+  let email = null;
+  let phone = null;
+  let contactType = "";
 
   if (emailPattern.test(contact)) {
     email = contact.toLowerCase();
@@ -80,11 +82,13 @@ const createUser = asyncHandler(async (req, res) => {
     return res.status(400).json({ message: "Invalid email or phone number format." });
   }
 
-  console.log('Searching for user with:', { email, phone });
 
-  const userExists = await User.findOne({
-    $or: [{ email: email || null }, { phone: phone || null }],
-  });
+
+  const query = {};
+  if (email) query.email = email;
+  if (phone) query.phone = phone;
+
+  const userExists = await User.findOne(query);
 
   if (userExists) {
     const token = generateToken(userExists._id);
@@ -98,13 +102,10 @@ const createUser = asyncHandler(async (req, res) => {
   const userAgent = [ua.ua];
 
   const user = await User.create({
-    firstname,
-    lastname,
-    location,
     email,
     phone,
     password,
-    dob,
+    username,
     contactType,
     userAgent,
   });
@@ -118,14 +119,12 @@ const createUser = asyncHandler(async (req, res) => {
   const subject = "New User Signup Alert - Thriftify";
   const send_to = process.env.ADMIN_EMAIL; // Use env variable
   const send_from = process.env.EMAIL_USER;
-  const reply_to = "noreply@thritify.com";
+  const reply_to = "noreply@thriftify.com";
   const template = "signupalert.";
-  const name = user.firstname;
+  const name = user.username;
   
- 
   try {
-    await sendEmail(
-      subject,
+    await sendEmail( subject,
       send_to,
       send_from,
       reply_to,
@@ -141,13 +140,7 @@ const createUser = asyncHandler(async (req, res) => {
       null,
       null,
       null,
-      null,
-      user.email,
-      
-
-   
-    );
-
+      null);
     console.log(`Signup alert sent to admin: ${send_to}`);
   } catch (error) {
     console.error("Failed to send signup alert:", error.message);
@@ -155,18 +148,18 @@ const createUser = asyncHandler(async (req, res) => {
 
   res.status(201).json({
     id: user._id,
-    lastname: user.lastname,
-    firstname: user.firstname,
-    location: user.location,
     email: user.email,
     phone: user.phone,
-    photo: user.photo,
-    role: user.role,
-    isVerified: user.isVerified,
+    username: user.username,
+    location: user.location || '',
+    photo: user.photo || null,
+    role: user.role || "user",
+    isVerified: user.isVerified || false,
+    dob: user.dob ,
     token,
-    dob: user.dob,
   });
 });
+
 
 
 
@@ -245,7 +238,7 @@ const correctPassword = await bcrypt.compare(password, user.password);
     const token = generateToken(user._id);
 
     // Send user data along with token
-    const { id, lastname, firstname, location, photo, role, isVerified, phone } = user;
+    const { id, lastname, firstname, location, photo, role, isVerified, phone,username } = user;
     res.status(200).json({
       id,
       firstname,
@@ -257,6 +250,7 @@ const correctPassword = await bcrypt.compare(password, user.password);
       isVerified,
       phone,
       token,
+      username
     });
   } catch (error) {
     console.error("Error during login:", error);
@@ -440,7 +434,7 @@ const sendVerifyEmail = asyncHandler(async (req, res) => {
       const send_from = process.env.EMAIL_USER;
       const reply_to = "noreply@thriftify.com";
       const template = "verifyemail.";
-      const name = user.firstname;
+      const name = user.username;
       const link = verificationUrl;
 
       await sendEmail(subject, send_to, send_from, reply_to, null, template, name, link);
@@ -604,7 +598,7 @@ const getUser = asyncHandler(async (req, res) => {
     }
 
     const user = await User.findById(req.user._id).select('-password');
-   
+
 
     if (!user) {
       res.status(404).json({ message: "User not found" });
@@ -632,14 +626,15 @@ const getUser = asyncHandler(async (req, res) => {
       pendingPurchasedAmount,
       userAgent,
       verificationRequested,
-      contactType
+      contactType,
+      username
     } = user;
 
     const passphrase = process.env.CRYPTO_JS
- // Replace with a secure passphrase
-    const encryptedEmail = CryptoJS.AES.encrypt(email.toString(), passphrase).toString();
-    const encryptedPhone = CryptoJS.AES.encrypt(phone.toString(), passphrase).toString();
-    const encryptedDob = CryptoJS.AES.encrypt(dob.toString(), passphrase).toString();
+    const encryptedEmail = email === null?'': CryptoJS.AES.encrypt(email.toString(), passphrase).toString()
+    const encryptedPhone = phone === null ? '':CryptoJS.AES.encrypt(phone.toString(), passphrase).toString()
+    const encryptedDob = dob ===null ? '' :CryptoJS.AES.encrypt(dob.toString(), passphrase).toString()
+
 
     
     
@@ -647,6 +642,7 @@ const getUser = asyncHandler(async (req, res) => {
       id,
       firstname,
       lastname,
+      username,
       location,
       email:encryptedEmail,
       photo,
@@ -702,35 +698,43 @@ const updateUser = asyncHandler(async (req, res) => {
     user.about = req.body.about || about;
     user.email = email;
 
-    // Ensure dob remains a Date object
+    // Ensure dob remains a Date object and is valid
     if (req.body.dob) {
-      const date =  new Date(req.body.dob);
-    
-      if (!isNaN(date.getTime())) {  // Check if date is valid
+      const date = new Date(req.body.dob);
+
+      if (!isNaN(date.getTime())) {
         user.dob = date;
+      } else {
+        console.log("Invalid DOB provided:", req.body.dob);
       }
     }
 
-    const updatedUser = await user.save();
-
-    res.status(200).json({
-      lastname: updatedUser.lastname,
-      firstname: updatedUser.firstname,
-      location: updatedUser.location,
-      phone: updatedUser.phone,
-      about: updatedUser.about,
-      photo: updatedUser.photo,
-      role: updatedUser.role,
-      isVerified: updatedUser.isVerified,
-      dob: updatedUser.dob // This will return ISO format
-    });
-    console.log("DOB from request:", req.body.dob);
-    console.log("Parsed DOB:", user.dob);
+    try {
+      const updatedUser = await user.save();
+      res.status(200).json({
+        lastname: updatedUser.lastname,
+        firstname: updatedUser.firstname,
+        location: updatedUser.location,
+        phone: updatedUser.phone,
+        about: updatedUser.about,
+        photo: updatedUser.photo,
+        role: updatedUser.role,
+        isVerified: updatedUser.isVerified,
+        dob: updatedUser.dob // This will return ISO format
+      });
+      console.log("DOB from request:", req.body.dob);
+      console.log("Parsed DOB:", user.dob);
+    } catch (error) {
+      console.log("Error saving user:", error);
+      res.status(500).json({ message: "Error saving user" });
+    }
   } else {
     res.status(400);
     throw new Error("User not found");
   }
 });
+
+
 
 //delete user
 
@@ -2135,29 +2139,28 @@ const customerPaid = asyncHandler(async (req, res) => {
 
 
 const idNotificationEmail = asyncHandler(async (req, res) => {
-  
-  const { verificationType, ninNumber, dob, email, address } = req.body;
+  const { verificationType, ninNumber, dob, email, address, firstname, lastname, location } = req.body;
   const files = req.files; // Get uploaded files
 
   // Validate required fields
-  if (!verificationType || !email || !address || !dob) {
-    return res.status(400).json({ message: 'Please fill in all the required details.' });
+  if (!verificationType || !email || !address || !dob||!location ||!firstname|| !lastname) {
+    return res.status(400).json({ message: "Please fill in all the required details." });
   }
 
   // If verification type is NIN, validate NIN
   if (verificationType === "nin") {
     if (!ninNumber || ninNumber.length !== 11) {
-      return res.status(400).json({ message: 'NIN must be exactly 11 digits.' });
+      return res.status(400).json({ message: "NIN must be exactly 11 digits." });
     }
     if (!files || files.length < 1) {
-      return res.status(400).json({ message: 'Proof of Address is required for NIN verification.' });
+      return res.status(400).json({ message: "Proof of Address is required for NIN verification." });
     }
   }
 
   // If verification type is ID, require two uploaded files
   if (verificationType === "id") {
     if (!files || files.length < 2) {
-      return res.status(400).json({ message: 'Both ID document and Proof of Address are required for ID verification.' });
+      return res.status(400).json({ message: "Both ID document and Proof of Address are required for ID verification." });
     }
   }
 
@@ -2165,23 +2168,30 @@ const idNotificationEmail = asyncHandler(async (req, res) => {
     // Retrieve the user by email
     const user = await User.findOne({ email });
     if (!user) {
-      return res.status(404).json({ message: 'User not found.' });
+      return res.status(404).json({ message: "User not found." });
     }
 
     // Check if the user has already requested ID verification
     if (user.verificationRequested) {
-      return res.status(400).json({ message: 'You have already requested ID verification.' });
+      return res.status(400).json({ message: "You have already requested ID verification." });
     }
 
-    // Update user details based on verification type
+    // Update user details if they are missing
+    if (!user.firstname && firstname) user.firstname = firstname;
+    if (!user.lastname && lastname) user.lastname = lastname;
+    if (!user.location && location) user.location = location;
+    if (!user.dob && dob) user.dob = dob;
+
+    // Save the address
     user.fullAddress = user.fullAddress || [];
     user.fullAddress.push({ address });
 
     if (verificationType === "nin") {
       user.ninDetails = user.ninDetails || [];
       user.ninDetails.push({ ninNumber });
-    } 
+    }
 
+    // Mark verification as requested
     user.verificationRequested = true;
     await user.save();
 
@@ -2191,10 +2201,10 @@ const idNotificationEmail = asyncHandler(async (req, res) => {
     const replyTo = "noreply@thriftify.com";
     const cc = "dispatched@thriftiffy.com";
     const customerEmail = user.email;
-    const subject = 'ID Verification Request';
+    const subject = "ID Verification Request";
     const adminEmail = process.env.ADMIN_EMAIL;
 
-    console.log('Uploaded Files:', files);
+    console.log("Uploaded Files:", files);
 
     // Notify customer
     await idVerificationEmail(
@@ -2223,7 +2233,7 @@ const idNotificationEmail = asyncHandler(async (req, res) => {
       name,
       ninNumber || "N/A",
       dob,
-      null,
+      location,
       files,
       address
     );
@@ -2238,6 +2248,7 @@ const idNotificationEmail = asyncHandler(async (req, res) => {
     res.status(500).json({ message: "An error occurred while processing your request." });
   }
 });
+
 
 
 const idConfirmationEmail = asyncHandler(async (req, res) => {
@@ -2520,10 +2531,9 @@ const countSignupsPerDayAPI = asyncHandler(async (req, res) => {
 //   console.log("📆 Cron jobs executed at 2 PM.");
 // });
 
-
-
 // Run at midnight every day
 cron.schedule('50 23 * * *', saveDailySignupCount);
+
 
 // account deletion after 30 days of sign up 
 
