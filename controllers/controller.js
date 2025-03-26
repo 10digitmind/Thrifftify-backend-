@@ -2535,6 +2535,7 @@ const countSignupsPerDayAPI = asyncHandler(async (req, res) => {
 cron.schedule('50 23 * * *', saveDailySignupCount);
 
 
+
 // account deletion after 30 days of sign up 
 
 

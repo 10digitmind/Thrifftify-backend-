@@ -265,10 +265,67 @@ async function deleteUnverifiedAccounts() {
   }
 }
 
+async function userWithListings() {
+  try {
+    console.log("🔄 Checking users with more than one listing...");
+
+    // Find all verified users
+    const users = await User.find({ idVerified: true });
+
+    for (const user of users) {
+      // Find goods belonging to the user
+      const userGoods = await Good.find({ userId: user._id });
+
+      // Check if the user has more than one listed item
+      if (userGoods.length >= 1 ) {
+        console.log(`⚠️ User ${user.email} has more than one listing.`);
+
+        // Send email notification
+        const subject = "Congratulations on Your Listings!";
+        const send_to = user.email;
+        const send_from = process.env.EMAIL_USER;
+        const reply_to = "noreply@thriftify.com";
+        const template = "userwithlistings.";
+        const name = user.firstname;
+        const link = `${process.env.FRONTEND_USER}/profilepage`;
+
+        try {
+          await sendEmail(
+            subject,
+            send_to,
+            send_from,
+            reply_to,
+            null,
+            template,
+            name,
+            link,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null
+          );
+
+          console.log(`📧 Listing notification sent to: ${send_to}`);
+        } catch (error) {
+          console.error(`❌ Failed to send listing notification to ${send_to}:`, error.message);
+        }
+      }
+    }
+  } catch (error) {
+    console.error("❌ Error running first listing notification:", error.message);
+  }
+}
 
 
 
 
 
 
-module.exports = { sendVerificationReminders, listingNotification ,firstListingNotification,sendEmailVerification,deleteUnverifiedAccounts};
+
+module.exports = { sendVerificationReminders,userWithListings, listingNotification ,firstListingNotification,sendEmailVerification,deleteUnverifiedAccounts};
