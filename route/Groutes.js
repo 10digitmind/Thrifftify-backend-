@@ -171,12 +171,11 @@ router.delete("/api/users/deleteusergoods/:id", protect, Deleteusergoods);
 router.post("/api/users/createreview/:sellerId/:itemId", protect, createreview);
 
 
-router.get("/api/users/getallreview", protect, getAllreview);
+router.get("/api/users/getallreview", getAllreview);
 
 
 
 //get user review
-
 
 
 //----------Payment route //-----------------------

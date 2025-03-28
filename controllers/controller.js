@@ -1946,21 +1946,16 @@ const createreview = asyncHandler(async (req, res) => {
 });
 
 const getAllreview = asyncHandler(async (req, res) => {
-  const user = await User.findById(req.user._id);
-
-  if (!user) {
-    return res.status(404).json({ message: "User not found" });
-  }
-
+  
   // Fetch and sort reviews by 'createdAt' in ascending order (earliest first)
   const getUserreview = await Review.find().sort({ createdAt: 1 });
 
   if (!getUserreview || getUserreview.length === 0) {
     return res.status(404).json({ message: "No reviews found" });
   }
-
   return res.status(200).json(getUserreview);
 });
+
 
 const requestWithdrawal = asyncHandler(async (req, res) => {
   const { requestedAmount, accountNumber, bankName, accountName } = req.body;
