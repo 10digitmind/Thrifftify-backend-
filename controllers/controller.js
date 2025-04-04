@@ -2584,9 +2584,33 @@ const googleLogin = asyncHandler(async (req, res) => {
       const send_from = process.env.EMAIL_USER;
       const reply_to = "noreply@thriftify.com";
       const template = "signupalert.";
-      const name = user.username;
-      const email = email
+      const name = user.firstName;
+      const useremail = email
       
+      try {
+        await sendEmail( subject,
+          send_to,
+          send_from,
+          reply_to,
+          null,
+          template,
+          name,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          useremail
+        );
+        console.log(`Signup alert sent to admin: ${send_to}`);
+      } catch (error) {
+        console.error("Failed to send signup alert:", error.message);
+      }
      
     } 
 
