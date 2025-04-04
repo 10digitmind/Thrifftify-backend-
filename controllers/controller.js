@@ -41,6 +41,8 @@ const {sendVerificationReminders,listingNotification,firstListingNotification,se
 const saveDailySignupCount = require('../utills/savedailysignupcount.js')
 
 const countSignupsPerDay = require('../utills/userdailycount.js')
+const { OAuth2Client } = require('google-auth-library');
+const client = new OAuth2Client('YOUR_GOOGLE_CLIENT_ID');
 
 //-------------utilities functions
 // genrate toeken function
@@ -2539,10 +2541,63 @@ cron.schedule("0 0 * * *", deleteUnverifiedAccounts);
 
 
 
+const googleLogin = asyncHandler(async (req, res) => {
+  const token = req.body.token;
+  try {
+
+    const ticket = await client.verifyIdToken({
+      idToken: token,
+      audience: process.env.GOOGLE_KEY,  // Your Client ID
+    });
+    
+  
+    
+    if (!ticket) {
+      return res.status(404).json({ message: 'No ticket or valid token' });
+    }
+
+    // Extract user information from the payload
+    const payload = ticket.getPayload();
+    const email = payload.email;
+    const userId = payload.sub;
+   const firstName = payload.given_name
+   const lastName =payload.family_name
+
+    // Check if user already exists in the database
+    let user = await User.findOne({ email });
+    
+    if (!user) {
+      // If user does not exist, create a new user
+      user = await User.create({
+        email:email,
+        username:userId,
+        isVerified:true,
+        contactType:'email',
+        firstname:firstName,
+        lastname:lastName
+
+        // Add any other fields needed
+      });
+    } 
+
+    // Generate a JWT token for the user to log them in
+    const jwtToken = generateToken(user._id);  // You should define `generateJwtToken` to create a JWT token for the user.
+
+    // Send the response to the client with the token
+    res.json({
+      message: 'User logged in successfully',
+      token: jwtToken,
+      user: user,  // Optionally send the user data
+    });
+  } catch (error) {
+    console.error('Error in googleLogin:', error); // Log the error
+    res.status(400).json({ message: 'Invalid token', error });
+  }
+});
+
 
 
 //cron jobs 
-
  
 module.exports = {
   createUser,
@@ -2587,5 +2642,6 @@ module.exports = {
   productsearchbycategory,
   messageUs,
   tokenGenerator,
-  countSignupsPerDayAPI
+  countSignupsPerDayAPI,
+  googleLogin
 };

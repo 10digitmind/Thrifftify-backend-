@@ -50,7 +50,10 @@ async function sendVerificationReminders() {
 
         console.log(`📧 Verification reminder sent to: ${send_to}`);
       } catch (error) {
-        console.error(`❌ Failed to send verification reminder to ${send_to}:`, error.message);
+        console.error(
+          `❌ Failed to send verification reminder to ${send_to}:`,
+          error.message
+        );
       }
     }
   } catch (error) {
@@ -111,7 +114,10 @@ async function listingNotification() {
 
           console.log(`📧 Listing reminder sent to: ${send_to}`);
         } catch (error) {
-          console.error(`❌ Failed to send listing reminder to ${send_to}:`, error.message);
+          console.error(
+            `❌ Failed to send listing reminder to ${send_to}:`,
+            error.message
+          );
         }
       }
     }
@@ -121,8 +127,6 @@ async function listingNotification() {
     console.error("❌ Error running cron job:", error.message);
   }
 }
-
-
 
 async function firstListingNotification(userId) {
   try {
@@ -172,14 +176,19 @@ async function firstListingNotification(userId) {
 
         console.log(`📧 First listing notification sent to: ${send_to}`);
       } catch (error) {
-        console.error(`❌ Failed to send first listing notification to ${send_to}:`, error.message);
+        console.error(
+          `❌ Failed to send first listing notification to ${send_to}:`,
+          error.message
+        );
       }
     }
   } catch (error) {
-    console.error("❌ Error running first listing notification:", error.message);
+    console.error(
+      "❌ Error running first listing notification:",
+      error.message
+    );
   }
 }
-
 
 async function sendEmailVerification() {
   try {
@@ -194,7 +203,8 @@ async function sendEmailVerification() {
     }
 
     for (const user of unverifiedemailUsers) {
-      const subject = "Final Reminder: Verify Your Thriftify Account Before It's Deleted"
+      const subject =
+        "Final Reminder: Verify Your Thriftify Account Before It's Deleted";
       const send_to = user.email;
       const send_from = process.env.EMAIL_USER;
       const reply_to = "noreply@thritify.com";
@@ -226,15 +236,16 @@ async function sendEmailVerification() {
 
         console.log(`📧 Verification reminder sent to: ${send_to}`);
       } catch (error) {
-        console.error(`❌ Failed to send verification reminder to ${send_to}:`, error.message);
+        console.error(
+          `❌ Failed to send verification reminder to ${send_to}:`,
+          error.message
+        );
       }
     }
   } catch (error) {
     console.error("❌ Error running cron job:", error.message);
   }
 }
-
-
 
 async function deleteUnverifiedAccounts() {
   try {
@@ -243,7 +254,7 @@ async function deleteUnverifiedAccounts() {
     // Find users who signed up but haven't verified their email after 30 days
     const unverifiedEmailUsers = await User.find({
       isVerified: false,
-      createdAt: { $lt: new Date(Date.now() - 30 * 24 * 60 * 60 * 1000) } // 30 days ago
+      createdAt: { $lt: new Date(Date.now() - 30 * 24 * 60 * 60 * 1000) }, // 30 days ago
     });
 
     if (unverifiedEmailUsers.length === 0) {
@@ -257,7 +268,10 @@ async function deleteUnverifiedAccounts() {
         await user.delete();
         console.log(`❌ Deleted unverified account: ${user.email}`);
       } catch (error) {
-        console.error(`❌ Failed to delete account: ${user.email}`, error.message);
+        console.error(
+          `❌ Failed to delete account: ${user.email}`,
+          error.message
+        );
       }
     }
   } catch (error) {
@@ -277,7 +291,7 @@ async function userWithListings() {
       const userGoods = await Good.find({ userId: user._id });
 
       // Check if the user has more than one listed item
-      if (userGoods.length >= 1 ) {
+      if (userGoods.length >= 1) {
         console.log(`⚠️ User ${user.email} has more than one listing.`);
 
         // Send email notification
@@ -313,19 +327,76 @@ async function userWithListings() {
 
           console.log(`📧 Listing notification sent to: ${send_to}`);
         } catch (error) {
-          console.error(`❌ Failed to send listing notification to ${send_to}:`, error.message);
+          console.error(
+            `❌ Failed to send listing notification to ${send_to}:`,
+            error.message
+          );
         }
       }
     }
   } catch (error) {
-    console.error("❌ Error running first listing notification:", error.message);
+    console.error(
+      "❌ Error running first listing notification:",
+      error.message
+    );
   }
 }
 
 
 
+async function generalNotification() {
+  try {
+    console.log("🔄 Cron Job is running...");
+
+    // Fetch users who have verified their email
+    const users = await User.find({ isVerified: true });; // Replace with your actual DB query
+
+    if(users===0){
+      console.log('no users')
+      return;
+    }
+
+    for (const user of users) { 
+      const subject = "Eid Mubarak from Thriftify! 🎉";
+      const send_to = user.email;
+      const send_from = process.env.EMAIL_USER;
+      const reply_to = "noreply@thrifify.com";
+      const template = "generalnotification."; // Ensure you have this template in your email system
+      const name = user.firstname;
+
+      try {
+        await sendEmail(
+          subject,
+          send_to,
+          send_from,
+          reply_to,
+          null,
+          template,
+          name
+        );
+
+        console.log(`📧 Eid message sent to: ${send_to}`);
+        console.log(send_to.length)
+      } catch (error) {
+        console.error(
+          `❌ Failed to send Eid message to ${send_to}:`,
+          error.message
+        );
+      }
+    }
+  } catch (error) {
+    console.error("❌ Error running email job:", error.message);
+  }
+}
 
 
 
-
-module.exports = { sendVerificationReminders,userWithListings, listingNotification ,firstListingNotification,sendEmailVerification,deleteUnverifiedAccounts};
+module.exports = {
+  sendVerificationReminders,
+  userWithListings,
+  listingNotification,
+  firstListingNotification,
+  sendEmailVerification,
+  deleteUnverifiedAccounts,
+  generalNotification
+};

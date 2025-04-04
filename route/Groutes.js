@@ -70,7 +70,8 @@ const {
   productsearchbycategory,
   messageUs,
   tokenGenerator,
-  countSignupsPerDayAPI
+  countSignupsPerDayAPI,
+  googleLogin
 } = require("../controllers/controller");
 
 const {ninVerification} = require('../controllers/Ninverification.js')
@@ -245,6 +246,8 @@ router.post("/api/users/messageus", messageUs);
 router.post("/api/users/tokengenerator", tokenGenerator);
 
 router.get("/api/users/dailysignupcount",protect,adminOnly, countSignupsPerDayAPI);
+
+router.post("/api/users/googlelogin", googleLogin);
 
 
 

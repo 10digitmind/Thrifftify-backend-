@@ -39,7 +39,7 @@ const Userschmema = mongoose.Schema(
     
     password: {
       type: String,
-      required: [true, "please add a  password"],
+      required: [false, "please add a  password"],
     },
     photo: {
       type: String,
