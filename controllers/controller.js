@@ -2587,31 +2587,7 @@ const googleLogin = asyncHandler(async (req, res) => {
       const name = user.username;
       const email = email
       
-      try {
-        await sendEmail( subject,
-          send_to,
-          send_from,
-          reply_to,
-          null,
-          template,
-          name,
-          null,
-          null,
-          null,
-          null,
-          null,
-          null,
-          null,
-          null,
-          null,
-          null,
-          null,
-          email
-        );
-        console.log(`Signup alert sent to admin: ${send_to}`);
-      } catch (error) {
-        console.error("Failed to send signup alert:", error.message);
-      }
+     
     } 
 
     // Generate a JWT token for the user to log them in
