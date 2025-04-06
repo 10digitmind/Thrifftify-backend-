@@ -9,6 +9,7 @@ const cors = require("cors");
 const groute = require("./route/Groutes.js");
 const fs = require('fs');
 
+
 const app = express();
 
 // Middleware
@@ -57,13 +58,15 @@ app.use((req, res, next) => {
 
 // MongoDB Connection and Server Start
 const PORT = process.env.PORT || 3500;
+
 mongoose
-  .connect(process.env.MONGO_URL, { useNewUrlParser: true, useUnifiedTopology: true })
+  .connect(process.env.MONGO_URL) // Removed useNewUrlParser and useUnifiedTopology
   .then(() => {
-   app.listen(PORT, () => {
+    app.listen(PORT, () => {
       console.log(`HTTPS server running on https://localhost:${PORT}`);
     });
   })
   .catch((error) => {
     console.error("Database connection error:", error.message);
   });
+  

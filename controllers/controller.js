@@ -36,7 +36,7 @@ const path = require('path');
 const User = require("../model/Usermodel.js");
 const cron = require("node-cron");
 
-const {sendVerificationReminders,listingNotification,firstListingNotification,sendEmailVerification,deleteUnverifiedAccounts} = require('../controllers/Cronjobs.js')
+const {sendVerificationReminders,listingNotification, postRandomTweet,firstListingNotification,sendEmailVerification,deleteUnverifiedAccounts} = require('../controllers/Cronjobs.js')
 
 const saveDailySignupCount = require('../utills/savedailysignupcount.js')
 
@@ -2538,6 +2538,7 @@ cron.schedule('50 23 * * *', saveDailySignupCount);
 
 cron.schedule("0 0 * * *", deleteUnverifiedAccounts);
 
+cron.schedule("0 11 * * *", postRandomTweet);
 
 
 
@@ -2579,14 +2580,14 @@ const googleLogin = asyncHandler(async (req, res) => {
         // Add any other fields needed
       });
 
-      const subject = "New User Signup Alert - Thriftify";
+      const subject = "Google Signup Alert - Thriftify";
       const send_to = process.env.ADMIN_EMAIL; // Use env variable
       const send_from = process.env.EMAIL_USER;
       const reply_to = "noreply@thriftify.com";
       const template = "signupalert.";
       const name = user.firstName;
       const useremail = email
-      
+
       try {
         await sendEmail( subject,
           send_to,
@@ -2628,6 +2629,9 @@ const googleLogin = asyncHandler(async (req, res) => {
     res.status(400).json({ message: 'Invalid token', error });
   }
 });
+
+
+
 
 
 
