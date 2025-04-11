@@ -49,15 +49,18 @@ app.use(groute);
 // Error Handler
 app.use(errorHandler);
 
+app.use((req, res, next) => {
+  res.removeHeader("Cross-Origin-Opener-Policy"); // just in case
+  res.removeHeader("Cross-Origin-Embedder-Policy"); // same
+  next();
+});
+
 // 404 Middleware
 app.use((req, res, next) => {
   res.status(404).json({ message: "Route not found" });
 });
 
-app.use((req, res, next) => {
-  res.setHeader('Cross-Origin-Opener-Policy', 'same-origin');
-  next();
-});
+
 
 // MongoDB Connection and Server Start
 const PORT = process.env.PORT || 3500;
