@@ -25,7 +25,7 @@ app.use(
       "https://thrifftify-backend.onrender.com",
       'https://thrifftify-fronend.vercel.app',
       'https://www.thriftiffy.com',
-      'http://localhost:3001'
+      
     ],
     credentials: true,
     methods: ["GET", "POST", "PUT", "DELETE",'PATCH'],
@@ -54,7 +54,10 @@ app.use((req, res, next) => {
   res.status(404).json({ message: "Route not found" });
 });
 
-
+app.use((req, res, next) => {
+  res.setHeader('Cross-Origin-Opener-Policy', 'same-origin');
+  next();
+});
 
 // MongoDB Connection and Server Start
 const PORT = process.env.PORT || 3500;

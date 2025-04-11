@@ -2521,12 +2521,6 @@ const countSignupsPerDayAPI = asyncHandler(async (req, res) => {
 
 
 
-// cron job for emmail reminder 
-// cron.schedule("0 14 * * *", async () => {
-//   await sendVerificationReminders();
-//   await listingNotification();
-//   console.log("📆 Cron jobs executed at 2 PM.");
-// });
 
 // Run at midnight every day
 cron.schedule('50 23 * * *', saveDailySignupCount);
@@ -2632,6 +2626,12 @@ const googleLogin = asyncHandler(async (req, res) => {
 
 
 
+// cron job for emmail reminder 
+// cron.schedule("0 14 * * *", async () => {
+//   await sendVerificationReminders();
+//   await listingNotification();
+//   console.log("📆 Cron jobs executed at 2 PM.");
+// });
 
 
 
