@@ -50,12 +50,7 @@ app.use(groute);
 app.use(errorHandler);
 
 
-// Node.js/Express example
-app.use((req, res, next) => {
-  res.setHeader('Cross-Origin-Opener-Policy', 'same-origin');
-  res.setHeader('Cross-Origin-Embedder-Policy', 'require-corp');
-  next();
-});
+
 
 // 404 Middleware
 app.use((req, res, next) => {
