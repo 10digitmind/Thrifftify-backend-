@@ -49,9 +49,11 @@ app.use(groute);
 // Error Handler
 app.use(errorHandler);
 
+
+// Node.js/Express example
 app.use((req, res, next) => {
-  res.removeHeader("Cross-Origin-Opener-Policy"); // just in case
-  res.removeHeader("Cross-Origin-Embedder-Policy"); // same
+  res.setHeader('Cross-Origin-Opener-Policy', 'same-origin');
+  res.setHeader('Cross-Origin-Embedder-Policy', 'require-corp');
   next();
 });
 
@@ -59,6 +61,7 @@ app.use((req, res, next) => {
 app.use((req, res, next) => {
   res.status(404).json({ message: "Route not found" });
 });
+
 
 
 
