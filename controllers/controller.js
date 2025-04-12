@@ -820,6 +820,7 @@ const loginStatus = asyncHandler(async (req, res) => {
     if (verified) {
       return res.status(200).json({ status: true, message: "User is logged in." });
     }
+
   } catch (error) {
     console.error("Token verification failed:", error.message);
     return res.status(401).json({ status: false, message: "Invalid or expired token." });

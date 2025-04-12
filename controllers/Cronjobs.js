@@ -358,7 +358,7 @@ async function generalNotification() {
     }
 
     for (const user of users) { 
-      const subject = "Eid Mubarak from Thriftify! 🎉";
+      const subject = "Win 300k cash! 🎉";
       const send_to = user.email;
       const send_from = process.env.EMAIL_USER;
       const reply_to = "noreply@thrifify.com";
