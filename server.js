@@ -25,6 +25,7 @@ app.use(
       "https://thrifftify-backend.onrender.com",
       'https://thrifftify-fronend.vercel.app',
       'https://www.thriftiffy.com',
+      "http://localhost:3001",
       
     ],
     credentials: true,
