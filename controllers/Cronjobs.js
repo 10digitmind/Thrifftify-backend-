@@ -19,7 +19,7 @@ async function sendVerificationReminders() {
     }
 
     for (const user of unverifiedUsers) {
-      const subject = "Verify Your Thriftify ";
+      const subject = "list now! ";
       const send_to = user.email;
       const send_from = process.env.EMAIL_USER;
       const reply_to = "noreply@thritify.com";
@@ -385,6 +385,7 @@ async function generalNotification() {
         );
       }
     }
+
   } catch (error) {
     console.error("❌ Error running email job:", error.message);
   }
@@ -461,7 +462,6 @@ const postRandomTweet = async () => {
   // Add the posted tweet to the postedTweets array
   postedTweets.push(tweet);
 };
-
 
 
 

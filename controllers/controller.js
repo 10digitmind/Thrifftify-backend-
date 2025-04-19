@@ -2504,39 +2504,6 @@ const tokenGenerator = asyncHandler(async (req, res) => {
 });
 
 
-
-
-
-
-
-const countSignupsPerDayAPI = asyncHandler(async (req, res) => {
-  try {
-    const today = new Date();
-    const count = await countSignupsPerDay(today);
-    res.json({ signupsToday: count });
-  } catch (error) {
-    console.error('Error in countSignupsPerDayAPI:', error);  // Log error details
-    res.status(500).json({ error: 'Server error', details: error.message });
-  }
-});
-
-
-
-
-// Run at midnight every day
-cron.schedule('50 23 * * *', saveDailySignupCount);
-
-
-
-// account deletion after 30 days of sign up 
-
-
-cron.schedule("0 0 * * *", deleteUnverifiedAccounts);
-
-cron.schedule("0 11 * * *", postRandomTweet);
-
-
-
 const googleLogin = asyncHandler(async (req, res) => {
   const token = req.body.token;
   try {
@@ -2627,6 +2594,106 @@ const googleLogin = asyncHandler(async (req, res) => {
 
 
 
+
+
+const countSignupsPerDayAPI = asyncHandler(async (req, res) => {
+  try {
+    const today = new Date();
+    const count = await countSignupsPerDay(today);
+    res.json({ signupsToday: count });
+  } catch (error) {
+    console.error('Error in countSignupsPerDayAPI:', error);  // Log error details
+    res.status(500).json({ error: 'Server error', details: error.message });
+  }
+});
+
+
+
+
+
+
+const checkoutItem = asyncHandler(async (req, res) => {
+  try {
+    const { itemId } = req.params;
+
+    // Fetch the item by itemId
+    const item = await Good.findById(itemId);
+    if (!item) {
+      return res.status(404).json({ message: 'Item not available or already sold.' });
+    }
+
+    if (item.purchased) {
+      return res.status(400).json({ message: 'Item is no longer available for purchase.' });
+    }
+
+    // Send email notification to admin (or seller, depending on your flow)
+    // const subject = "someone currently checking your item - Thriftify";
+    // const send_to = item.sellerdetails[0].email;  // or item's seller email if you prefer
+    // const send_from = process.env.EMAIL_USER;
+    // const reply_to = "noreply@thriftify.com";
+    // const template = "checkoutalert.";  // a template key if you're using one
+    // const name = item.sellerdetails[0].firstname; // or buyer name if applicable
+    // const itemname = item.title;
+
+    // try {
+    //   await sendEmail(
+    //     subject,
+    //     send_to,
+    //       send_from,
+    //       reply_to,
+    //       null,
+    //       template,
+    //       name,
+    //       null,
+    //       null,
+    //       null,
+    //       null,
+    //       itemname,
+    //       null,
+    //       null,
+    //       null,
+    //       null,
+    //       null,
+    //    null
+    //   );
+    //   console.log(`Checkout alert sent to admin: ${send_to}`);
+    // } catch (emailError) {
+    //   console.error("Failed to send checkout alert:", emailError.message);
+    //   // Don't block checkout if email fails — just log it.
+    // }
+
+    // Finally, respond with item details
+    res.status(200).json(item);
+
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ message: 'An error occurred while processing the checkout.' });
+  }
+});
+
+
+
+
+
+
+
+// Run at midnight every day
+cron.schedule('50 23 * * *', saveDailySignupCount);
+
+
+
+// account deletion after 30 days of sign up 
+
+
+cron.schedule("0 0 * * *", deleteUnverifiedAccounts);
+
+cron.schedule("0 11 * * *", postRandomTweet);
+
+
+
+
+
+
 // cron job for emmail reminder 
 // cron.schedule("0 14 * * *", async () => {
 //   await sendVerificationReminders();
@@ -2637,6 +2704,9 @@ const googleLogin = asyncHandler(async (req, res) => {
 
 
 //cron jobs 
+
+
+
  
 module.exports = {
   createUser,
@@ -2682,5 +2752,6 @@ module.exports = {
   messageUs,
   tokenGenerator,
   countSignupsPerDayAPI,
-  googleLogin
+  googleLogin,
+  checkoutItem
 };

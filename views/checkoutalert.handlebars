@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Checkout Notification</title>
+  <style>
+    body {
+      font-family: Arial, Helvetica, sans-serif;
+      margin: 0;
+      padding: 0;
+      background-color: #f5f5f5;
+    }
+    .head-con {
+      width: 100%;
+      height: 50px;
+      background-color: green;
+      color: white;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+    }
+    .email-body {
+      padding: 20px;
+      max-width: 600px;
+      margin: 20px auto;
+      background-color: white;
+      border-radius: 5px;
+      box-shadow: 0 0 5px rgba(0,0,0,0.1);
+    }
+    h2 {
+      color: #333;
+    }
+    p {
+      line-height: 1.6;
+      color: #555;
+    }
+    .footer {
+      margin-top: 20px;
+      font-size: 0.9rem;
+      color: #888;
+      text-align: center;
+    }
+  </style>
+</head>
+<body>
+
+  <header>
+    <div class="head-con">
+      <h2>Thriftify</h2>
+    </div>
+  </header>
+
+  <div class="email-body">
+    <h2>Hello {{name}},</h2>
+    <p>
+      We’re excited to let you know that your item <strong>{{itemname}}</strong> is currently being checked out by a buyer.
+    </p>
+    <p>
+      You will be notified as soon as the payment is confirmed and the buyer completes their checkout process.
+    </p>
+    <p>
+      Please ensure the item remains available and ready for dispatch, pending confirmation.
+    </p>
+    <p>
+      Thank you for using Thriftify, and we appreciate your trust in our platform.
+    </p>
+
+    <p>
+      Kind regards,<br/>
+      The Thriftify Team
+    </p>
+
+    <div class="footer">
+      &copy; {{year}} Thriftify. All rights reserved.
+    </div>
+  </div>
+
+</body>
+</html>

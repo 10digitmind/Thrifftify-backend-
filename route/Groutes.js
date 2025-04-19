@@ -71,7 +71,8 @@ const {
   messageUs,
   tokenGenerator,
   countSignupsPerDayAPI,
-  googleLogin
+  googleLogin,
+  checkoutItem
 } = require("../controllers/controller");
 
 const {ninVerification} = require('../controllers/Ninverification.js')
@@ -174,7 +175,7 @@ router.post("/api/users/createreview/:sellerId/:itemId", protect, createreview);
 
 router.get("/api/users/getallreview", getAllreview);
 
-
+router.get("/api/users/checkoutitem/:itemId", checkoutItem);
 
 //get user review
 
