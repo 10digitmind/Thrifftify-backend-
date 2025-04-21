@@ -1305,23 +1305,20 @@ const initialisePayment = asyncHandler(async (req, res) => {
     return res.status(400).json({ error: "Email and amount are required." });
   }
 
-  let finalAmount = amount; // Start with the original amount
+  let finalAmount = amount;
+  let meta = metadata || {};
 
   if (couponCode) {
-    // Validate the coupon code
     const coupon = await Coupon.findOne({ code: couponCode });
 
-    // Check if the coupon is valid
     if (!coupon || !coupon.isActive || coupon.usedCount >= coupon.limit || new Date() > coupon.expiryDate) {
       return res.status(400).json({ error: "Invalid or expired coupon code." });
     }
 
-    // Apply the discount from the coupon
-    finalAmount = amount - coupon.discountAmount;
+    finalAmount -= coupon.discountAmount;
+    if (finalAmount < 0) finalAmount = 0;
 
-    // Add coupon details to metadata for future use
-    if (!metadata) metadata = {};
-    metadata.couponCode = couponCode;
+    meta.couponCode = couponCode;
   }
 
   try {
@@ -1329,12 +1326,12 @@ const initialisePayment = asyncHandler(async (req, res) => {
       "https://api.paystack.co/transaction/initialize",
       {
         email,
-        amount: finalAmount * 100, // Amount in kobo
-        metadata: metadata ? JSON.stringify(metadata) : "{}", // Ensure metadata is a valid JSON object
+        amount: finalAmount * 100, // in kobo
+        metadata: meta,
       },
       {
         headers: {
-          Authorization: `Bearer ${process.env.PAYSTACK_SCERET_KEY}`,
+          Authorization: `Bearer ${process.env.PAYSTACK_SECRET_KEY}`,
           "Content-Type": "application/json",
         },
       }
@@ -1351,11 +1348,11 @@ const initialisePayment = asyncHandler(async (req, res) => {
 });
 
 
+
 //verify  playment
 const Paymentverification = asyncHandler(async (req, res) => {
   const { reference } = req.query;
 
-  // Log incoming reference
   console.log("Incoming reference:", reference);
 
   if (!reference) {
@@ -1373,31 +1370,42 @@ const Paymentverification = asyncHandler(async (req, res) => {
       }
     );
 
-    // Log the whole response for debugging
-    console.log('Full response from Paystack:', response.data);
+    console.log("Full response from Paystack:", response.data);
 
     const { status, data } = response.data;
 
-    if (status && data.status === "abandoned") {
+    if (!status) {
       return res.status(404).json({
-        message: "Transaction has been abandoned, go back to payment page to complete payment",
-        data,
+        message: "Invalid transaction reference",
       });
     }
 
-    if (status && data.status === "success") {
-      // Return success immediately without running the rest of the code
+    if (data.status === "success") {
       return res.status(200).json({
         message: "Payment verified successfully",
         data,
       });
     }
 
-    // Handle unexpected status cases
+    if (data.status === "abandoned") {
+      return res.status(404).json({
+        message: "Transaction has been abandoned, go back to payment page to complete payment",
+        data,
+      });
+    }
+
+    if (data.status === "failed") {
+      return res.status(400).json({
+        message: "Transaction failed",
+        data,
+      });
+    }
+
     return res.status(400).json({
       message: `Unexpected transaction status: ${data.status}`,
+      data,
     });
-    
+
   } catch (error) {
     console.error("Error verifying payment:", {
       message: error.message,
