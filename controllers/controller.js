@@ -1353,7 +1353,7 @@ const initialisePayment = asyncHandler(async (req, res) => {
 
 //verify  playment
 const Paymentverification = asyncHandler(async (req, res) => {
-  const { reference } = req.query;
+  const { reference, trxref } = req.query;
 
   if (!reference) {
     return res.status(400).send("Reference is required");
@@ -2746,7 +2746,6 @@ const createCoupon = async (req, res) => {
 
 const verifyCoupon = async (req, res) => {
   const { code } = req.query;
-console.log(code)
 
   if (!code) return res.status(400).json({ message: "Coupon code is required" });
 
