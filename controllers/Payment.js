@@ -14,7 +14,6 @@ const paystack = (req) => {
 const initializePayment = async (formData) => {
   const instance = paystack();
   const response = await instance.post('/transaction/initialize', formData);
-
   return response.data;
 };
 

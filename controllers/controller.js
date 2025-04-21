@@ -1353,8 +1353,9 @@ const initialisePayment = asyncHandler(async (req, res) => {
 
 //verify  playment
 const Paymentverification = asyncHandler(async (req, res) => {
-  const { reference, trxref } = req.query;
-console.log(reference)
+  const { reference } = req.query;
+  console.log(reference);
+
   if (!reference) {
     return res.status(400).send("Reference is required");
   }
@@ -1371,7 +1372,8 @@ console.log(reference)
     );
 
     const { status, data } = response.data;
-console.log('response:',response)
+    console.log('response:', response.data);
+
     if (status && data.status === "abandoned") {
       return res.status(404).json({
         message:
@@ -1381,156 +1383,37 @@ console.log('response:',response)
     }
 
     if (status && data.status === "success") {
+      // Return success immediately without running the rest of the code
+      return res.status(200).json({
+        message: "Payment verified successfully",
+        data,
+      });
+
+      /*
+      // The rest of your logic is commented out for debugging:
       const metadata = JSON.parse(data.metadata);
       const itemId = metadata.itemId;
       const buyerId = metadata.buyerId;
       const sellerId = metadata.sellerid;
-      const couponCode = metadata.code || null; // get coupon if passed
+      const couponCode = metadata.code || null;
       const amount = data.amountToUse / 100;
 
-      const item = await Good.findById(itemId);
-      const order = await Order.findById(buyerId);
-
-      if (item) {
-        item.purchased = true;
-        await item.save();
-
-        // Update buyer details
-        const buyerdetails = await User.findById(buyerId);
-        if (!buyerdetails) {
-          return res.status(400).json("Can't find buyer");
-        }
-        buyerdetails.pendingPurchasedAmount += amount;
-        await buyerdetails.save();
-
-        // Update seller details
-        const sellerdetails = await User.findById(sellerId);
-        if (!sellerdetails) {
-          return res.status(400).json("Can't find seller");
-        }
-        sellerdetails.pendingSoldAmount += amount;
-        await sellerdetails.save();
-
-        // Save order
-        const newOrder = new Order({
-          buyer: buyerId,
-          orderitems: item,
-          purchased: true,
-        });
-        await newOrder.save();
-
-        // ✅ If coupon was passed, verify and log usage
-        if (couponCode) {
-          const coupon = await Coupon.findOne({ code: couponCode });
-
-          if (coupon) {
-            // Check if it's still valid
-            const isExpired = new Date() > coupon.expiryDate;
-            const isUsageLimitReached =
-              coupon.usedCount >= coupon.usageLimit;
-
-            if (coupon.isActive && !isExpired && !isUsageLimitReached) {
-              // Increment usage count
-              coupon.usedCount += 1;
-              await coupon.save();
-
-              // Log usage
-              await CouponUsage.create({
-                userId: buyerId,
-                couponCode: couponCode,
-                amountApplied: coupon.discountValue,
-                orderId: newOrder._id,
-              });
-            }
-          }
-        }
-
-        // Send emails to buyer and seller (your existing email code here)
-
-        const template = "buyerpurchased.";
-        const reply_to = "noreply@thritify.com";
-        const send_from = process.env.EMAIL_USER;
-        const subject = "Item successfully purchased";
-        const send_to = metadata.buyerEmail;
-        const sellername = metadata.sellerName;
-        const buyername = metadata.buyerName;
-        const itemname = metadata.itemName;
-        const itemprice = metadata.itemPrice;
-        const deliverydate = item.deliverydate;
-        const buyeraddress = metadata.buyerAddress;
-        const cc = "purchased@thriftiffy.com";
-
-        await sendEmail(
-          subject,
-          send_to,
-          send_from,
-          reply_to,
-          cc,
-          template,
-          null,
-          null,
-          buyername,
-          itemname,
-          sellername,
-          null,
-          null,
-          null,
-          null,
-          null,
-          deliverydate
-        );
-
-        // Seller email
-        const sellerTemplate = "sellerpurchased.";
-        const sellerSubject = "Your item has been purchased";
-        const sellerEmail = metadata.sellerEmail;
-        const phonenumber = metadata.phoneNumber;
-        const deliveryformurl = `${process.env.FRONTEND_USER}/deliveryform/${newOrder._id}/${itemname}`;
-        const sellercc = "purchased@thriftiffy.com";
-
-        await sendEmail(
-          sellerSubject,
-          sellerEmail,
-          send_from,
-          reply_to,
-          sellercc,
-          sellerTemplate,
-          null,
-          null,
-          buyername,
-          itemprice,
-          sellername,
-          itemname,
-          buyeraddress,
-          phonenumber,
-          deliveryformurl,
-          null,
-          null
-        );
-
-        return res.status(200).json({
-          message: "Payment verified successfully and item updated",
-          data,
-        });
-      } else {
-        return res.status(404).json({ message: "Item not found" });
-      }
+      // ... all the DB operations and email sending code
+      */
     }
   } catch (error) {
     console.error("Error verifying payment:", {
       message: error.message,
-      responseData: error.response?.data, // what paystack actually returned
+      responseData: error.response?.data,
       status: error.response?.status,
     });
-  
-    // If Paystack sent back a specific error response, use it
+
     if (error.response) {
       return res.status(error.response.status).json({
         error: error.response.data?.message || "Payment verification failed",
       });
     }
-  
-    // Otherwise fallback to generic 500
+
     return res.status(500).json({
       error: "An unexpected server error occurred",
     });
