@@ -72,7 +72,9 @@ const {
   tokenGenerator,
   countSignupsPerDayAPI,
   googleLogin,
-  checkoutItem
+  checkoutItem,
+  createCoupon,
+  verifyCoupon
 } = require("../controllers/controller");
 
 const {ninVerification} = require('../controllers/Ninverification.js')
@@ -249,6 +251,9 @@ router.post("/api/users/tokengenerator", tokenGenerator);
 router.get("/api/users/dailysignupcount",protect,adminOnly, countSignupsPerDayAPI);
 
 router.post("/api/users/googlelogin", googleLogin);
+
+router.post("/api/users/createcoupon", createCoupon);
+router.get("/api/users/verifycoupon", verifyCoupon);
 
 
 

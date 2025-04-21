@@ -12,6 +12,8 @@ const {idVerificationEmail} = require('../sendemail/idVerificationmail.js')
 const {contactUs} = require('../sendemail/contactus.js')
 const Token = require("../model/tokenmodel.js");
 const Good = require("../model/Goodmodel.js");
+const Coupon = require('../model/CouponModel.js')
+const CouponUsage =require("../model/Couponuseagemodel.js");
 const DeletedUser = require('../model/DeletedUser.js')
 const Review = require("../model/Reviews.js");
 const crypto = require('crypto')
@@ -1297,17 +1299,37 @@ const Deleteusergoods = asyncHandler(async (req, res) => {
 
 //initialis playment  women
 const initialisePayment = asyncHandler(async (req, res) => {
-  const { email, amount, metadata } = req.body;
+  const { email, amount, couponCode, metadata } = req.body;
 
   if (!email || !amount) {
     return res.status(400).json({ error: "Email and amount are required." });
   }
+
+  let finalAmount = amount; // Start with the original amount
+
+  if (couponCode) {
+    // Validate the coupon code
+    const coupon = await Coupon.findOne({ code: couponCode });
+
+    // Check if the coupon is valid
+    if (!coupon || !coupon.isActive || coupon.usedCount >= coupon.limit || new Date() > coupon.expiryDate) {
+      return res.status(400).json({ error: "Invalid or expired coupon code." });
+    }
+
+    // Apply the discount from the coupon
+    finalAmount = amount - coupon.discountAmount;
+
+    // Add coupon details to metadata for future use
+    if (!metadata) metadata = {};
+    metadata.couponCode = couponCode;
+  }
+
   try {
     const response = await axios.post(
       "https://api.paystack.co/transaction/initialize",
       {
         email,
-        amount: amount * 100, // Amount in kobo
+        amount: finalAmount * 100, // Amount in kobo
         metadata: metadata ? JSON.stringify(metadata) : "{}", // Ensure metadata is a valid JSON object
       },
       {
@@ -1317,7 +1339,8 @@ const initialisePayment = asyncHandler(async (req, res) => {
         },
       }
     );
-   return res.status(200).json(response.data)
+
+    return res.status(200).json(response.data);
 
   } catch (error) {
     console.error("Error initializing payment:", error.response?.data || error.message);
@@ -1327,12 +1350,10 @@ const initialisePayment = asyncHandler(async (req, res) => {
   }
 });
 
+
 //verify  playment
 const Paymentverification = asyncHandler(async (req, res) => {
-  const { reference, trxref, } = req.query;
- 
-
- 
+  const { reference } = req.query;
 
   if (!reference) {
     return res.status(400).send("Reference is required");
@@ -1354,7 +1375,7 @@ const Paymentverification = asyncHandler(async (req, res) => {
     if (status && data.status === "abandoned") {
       return res.status(404).json({
         message:
-          "Trasaction has been abandoned go back to payment page to complete payment",
+          "Transaction has been abandoned, go back to payment page to complete payment",
         data,
       });
     }
@@ -1364,57 +1385,81 @@ const Paymentverification = asyncHandler(async (req, res) => {
       const itemId = metadata.itemId;
       const buyerId = metadata.buyerId;
       const sellerId = metadata.sellerid;
+      const couponCode = metadata.code || null; // get coupon if passed
       const amount = data.amount / 100;
+
       const item = await Good.findById(itemId);
-      const order = await Order.findById(buyerId)      
+      const order = await Order.findById(buyerId);
+
       if (item) {
         item.purchased = true;
         await item.save();
-        //order items
+
+        // Update buyer details
         const buyerdetails = await User.findById(buyerId);
-
         if (!buyerdetails) {
-          return res.status(400).json("cant find buyer");
-        } else {
-          buyerdetails.pendingPurchasedAmount += amount;
-
-          await buyerdetails.save();
+          return res.status(400).json("Can't find buyer");
         }
+        buyerdetails.pendingPurchasedAmount += amount;
+        await buyerdetails.save();
 
-        // find seller details and update pending amount
+        // Update seller details
         const sellerdetails = await User.findById(sellerId);
         if (!sellerdetails) {
-          return res.status(400).json("cant find seller");
-        } else {
-          sellerdetails.pendingSoldAmount += amount;
-          await sellerdetails.save();
+          return res.status(400).json("Can't find seller");
         }
+        sellerdetails.pendingSoldAmount += amount;
+        await sellerdetails.save();
 
-        //save order
-
+        // Save order
         const newOrder = new Order({
           buyer: buyerId,
-          orderitems: item, // Assign array of order items
-          purchased: true, // Assuming purchased is true when creating the order
+          orderitems: item,
+          purchased: true,
         });
-  // Save the order
-  await newOrder.save();
-      
-        // Extract metadata information
+        await newOrder.save();
+
+        // ✅ If coupon was passed, verify and log usage
+        if (couponCode) {
+          const coupon = await Coupon.findOne({ code: couponCode });
+
+          if (coupon) {
+            // Check if it's still valid
+            const isExpired = new Date() > coupon.expiryDate;
+            const isUsageLimitReached =
+              coupon.usedCount >= coupon.usageLimit;
+
+            if (coupon.isActive && !isExpired && !isUsageLimitReached) {
+              // Increment usage count
+              coupon.usedCount += 1;
+              await coupon.save();
+
+              // Log usage
+              await CouponUsage.create({
+                userId: buyerId,
+                couponCode: couponCode,
+                amountApplied: coupon.discountValue,
+                orderId: newOrder._id,
+              });
+            }
+          }
+        }
+
+        // Send emails to buyer and seller (your existing email code here)
+
         const template = "buyerpurchased.";
         const reply_to = "noreply@thritify.com";
         const send_from = process.env.EMAIL_USER;
-        const subject = "Item succesfully purchased";
+        const subject = "Item successfully purchased";
         const send_to = metadata.buyerEmail;
         const sellername = metadata.sellerName;
         const buyername = metadata.buyerName;
         const itemname = metadata.itemName;
         const itemprice = metadata.itemPrice;
-        const deliverydate = item.deliverydate
+        const deliverydate = item.deliverydate;
         const buyeraddress = metadata.buyerAddress;
         const cc = "purchased@thriftiffy.com";
 
-        // Email to Buyer
         await sendEmail(
           subject,
           send_to,
@@ -1435,21 +1480,20 @@ const Paymentverification = asyncHandler(async (req, res) => {
           deliverydate
         );
 
-        // Extract metadata information for seller
+        // Seller email
         const sellerTemplate = "sellerpurchased.";
         const sellerSubject = "Your item has been purchased";
         const sellerEmail = metadata.sellerEmail;
         const phonenumber = metadata.phoneNumber;
         const deliveryformurl = `${process.env.FRONTEND_USER}/deliveryform/${newOrder._id}/${itemname}`;
-        const selercc = "purchased@thriftiffy.com";
+        const sellercc = "purchased@thriftiffy.com";
 
-        // Email to Seller
         await sendEmail(
           sellerSubject,
           sellerEmail,
           send_from,
           reply_to,
-          selercc,
+          sellercc,
           sellerTemplate,
           null,
           null,
@@ -1469,7 +1513,7 @@ const Paymentverification = asyncHandler(async (req, res) => {
           data,
         });
       } else {
-        res.status(404).json({ message: "Item not found" });
+        return res.status(404).json({ message: "Item not found" });
       }
     }
   } catch (error) {
@@ -2674,7 +2718,55 @@ const checkoutItem = asyncHandler(async (req, res) => {
 
 
 
+const createCoupon = async (req, res) => {
+  const { code, discountType, discountValue, usageLimit, expiryDate } = req.body;
 
+  if (!code || !discountType || !discountValue || !usageLimit || !expiryDate) {
+    return res.status(400).json({ message: "All fields are required." });
+  }
+
+  const existingCoupon = await Coupon.findOne({ code });
+  if (existingCoupon) {
+    return res.status(400).json({ message: "Coupon code already exists." });
+  }
+
+  const newCoupon = new Coupon({
+    code,
+    discountType,
+    discountValue,
+    usageLimit,
+    expiryDate,
+  });
+
+  await newCoupon.save();
+
+  res.status(201).json({ message: "Coupon created successfully.", data: newCoupon });
+}
+
+
+const verifyCoupon = async (req, res) => {
+  const { code } = req.query;
+console.log(code)
+
+  if (!code) return res.status(400).json({ message: "Coupon code is required" });
+
+  const coupon = await Coupon.findOne({ code:code });
+
+  if (!coupon) return res.status(404).json({ message: "Invalid coupon code" });
+
+  if (!coupon.isActive || coupon.expiryDate < new Date()) {
+    return res.status(400).json({ message: "Coupon has expired or is inactive" });
+  }
+
+  if (coupon.usedCount >= coupon.usageLimit) {
+    return res.status(400).json({ message: "Coupon usage limit reached" });
+  }
+
+  res.status(200).json({
+    message: "Coupon is valid",
+    coupon
+  });
+};
 
 
 // Run at midnight every day
@@ -2685,7 +2777,7 @@ cron.schedule('50 23 * * *', saveDailySignupCount);
 // account deletion after 30 days of sign up 
 
 
-cron.schedule("0 0 * * *", deleteUnverifiedAccounts);
+// cron.schedule("0 0 * * *", deleteUnverifiedAccounts);
 
 cron.schedule("0 11 * * *", postRandomTweet);
 
@@ -2753,5 +2845,7 @@ module.exports = {
   tokenGenerator,
   countSignupsPerDayAPI,
   googleLogin,
-  checkoutItem
+  checkoutItem,
+  verifyCoupon,
+  createCoupon
 };
