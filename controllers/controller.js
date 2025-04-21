@@ -1517,8 +1517,23 @@ const Paymentverification = asyncHandler(async (req, res) => {
       }
     }
   } catch (error) {
-    console.error("Error verifying payment:", error);
-    res.status(500).json({ error: error.message });
+    console.error("Error verifying payment:", {
+      message: error.message,
+      responseData: error.response?.data, // what paystack actually returned
+      status: error.response?.status,
+    });
+  
+    // If Paystack sent back a specific error response, use it
+    if (error.response) {
+      return res.status(error.response.status).json({
+        error: error.response.data?.message || "Payment verification failed",
+      });
+    }
+  
+    // Otherwise fallback to generic 500
+    return res.status(500).json({
+      error: "An unexpected server error occurred",
+    });
   }
 });
 
