@@ -1354,7 +1354,9 @@ const initialisePayment = asyncHandler(async (req, res) => {
 //verify  playment
 const Paymentverification = asyncHandler(async (req, res) => {
   const { reference } = req.query;
-  console.log(reference);
+
+  // Log incoming reference
+  console.log("Incoming reference:", reference);
 
   if (!reference) {
     return res.status(400).send("Reference is required");
@@ -1365,19 +1367,20 @@ const Paymentverification = asyncHandler(async (req, res) => {
       `https://api.paystack.co/transaction/verify/${reference}`,
       {
         headers: {
-          Authorization: `Bearer ${process.env.PAYSTACK_SCERET_KEY}`,
+          Authorization: `Bearer ${process.env.PAYSTACK_SECRET_KEY}`,
           "Content-Type": "application/json",
         },
       }
     );
 
+    // Log the whole response for debugging
+    console.log('Full response from Paystack:', response.data);
+
     const { status, data } = response.data;
-    console.log('response:', response.data);
 
     if (status && data.status === "abandoned") {
       return res.status(404).json({
-        message:
-          "Transaction has been abandoned, go back to payment page to complete payment",
+        message: "Transaction has been abandoned, go back to payment page to complete payment",
         data,
       });
     }
@@ -1388,19 +1391,13 @@ const Paymentverification = asyncHandler(async (req, res) => {
         message: "Payment verified successfully",
         data,
       });
-
-      /*
-      // The rest of your logic is commented out for debugging:
-      const metadata = JSON.parse(data.metadata);
-      const itemId = metadata.itemId;
-      const buyerId = metadata.buyerId;
-      const sellerId = metadata.sellerid;
-      const couponCode = metadata.code || null;
-      const amount = data.amountToUse / 100;
-
-      // ... all the DB operations and email sending code
-      */
     }
+
+    // Handle unexpected status cases
+    return res.status(400).json({
+      message: `Unexpected transaction status: ${data.status}`,
+    });
+    
   } catch (error) {
     console.error("Error verifying payment:", {
       message: error.message,
