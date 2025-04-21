@@ -1364,12 +1364,12 @@ const Paymentverification = asyncHandler(async (req, res) => {
       `https://api.paystack.co/transaction/verify/${reference}`,
       {
         headers: {
-          Authorization: `Bearer ${process.env.PAYSTACK_SECRET_KEY}`,
+          Authorization: `Bearer ${process.env.PAYSTACK_SECERET_KEY}`,
           "Content-Type": "application/json",
         },
       }
     );
-
+    console.log('key:',process.env.PAYSTACK_SECERET_KEY)
     console.log("Full response from Paystack:", response.data);
 
     const { status, data } = response.data;
@@ -1425,7 +1425,8 @@ const Paymentverification = asyncHandler(async (req, res) => {
   }
 });
 
-// get orders for buyers
+
+// get orders 
 
 const getallorders = asyncHandler(async (req, res) => {
   const userId = req.user._id;
