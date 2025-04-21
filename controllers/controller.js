@@ -1386,7 +1386,7 @@ const Paymentverification = asyncHandler(async (req, res) => {
       const buyerId = metadata.buyerId;
       const sellerId = metadata.sellerid;
       const couponCode = metadata.code || null; // get coupon if passed
-      const amount = data.amount / 100;
+      const amount = data.amountToUse / 100;
 
       const item = await Good.findById(itemId);
       const order = await Order.findById(buyerId);
