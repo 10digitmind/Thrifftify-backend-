@@ -1371,7 +1371,7 @@ console.log(reference)
     );
 
     const { status, data } = response.data;
-
+console.log('response:',response)
     if (status && data.status === "abandoned") {
       return res.status(404).json({
         message:
