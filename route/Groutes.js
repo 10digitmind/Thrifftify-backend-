@@ -196,7 +196,7 @@ router.post(
 // payment verification
 router.get(
   "/api/users/paymentverification",
-  protect,
+  
   Paymentverification
 );
 
