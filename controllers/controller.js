@@ -1354,7 +1354,7 @@ const initialisePayment = asyncHandler(async (req, res) => {
 //verify  playment
 const Paymentverification = asyncHandler(async (req, res) => {
   const { reference, trxref } = req.query;
-
+console.log(reference)
   if (!reference) {
     return res.status(400).send("Reference is required");
   }
