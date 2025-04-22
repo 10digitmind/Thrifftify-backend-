@@ -46,6 +46,8 @@ const countSignupsPerDay = require('../utills/userdailycount.js')
 const { OAuth2Client } = require('google-auth-library');
 const client = new OAuth2Client('YOUR_GOOGLE_CLIENT_ID');
 
+const handleSuccessfulPayment = require('../utills/handleSuccessfulPayment.js')
+
 //-------------utilities functions
 // genrate toeken function
 const generateToken = (id) => {
@@ -1369,43 +1371,34 @@ const Paymentverification = asyncHandler(async (req, res) => {
         },
       }
     );
-    console.log('key:',process.env.PAYSTACK_SECERET_KEY)
-    console.log("Full response from Paystack:", response.data);
 
     const { status, data } = response.data;
+    console.log("Full response from Paystack:", data);
 
     if (!status) {
-      return res.status(404).json({
-        message: "Invalid transaction reference",
-      });
+      return res.status(404).json({ message: "Invalid transaction reference" });
     }
 
-    if (data.status === "success") {
-      return res.status(200).json({
-        message: "Payment verified successfully",
-        data,
-      });
+    switch (data.status) {
+      case "success":
+        await handleSuccessfulPayment(data, res);
+        break;
+
+      case "abandoned":
+        return res.status(404).json({
+          message: "Transaction has been abandoned. Please complete payment.",
+          data,
+        });
+
+      case "failed":
+        return res.status(400).json({ message: "Transaction failed", data });
+
+      default:
+        return res.status(400).json({
+          message: `Unexpected transaction status: ${data.status}`,
+          data,
+        });
     }
-
-    if (data.status === "abandoned") {
-      return res.status(404).json({
-        message: "Transaction has been abandoned, go back to payment page to complete payment",
-        data,
-      });
-    }
-
-    if (data.status === "failed") {
-      return res.status(400).json({
-        message: "Transaction failed",
-        data,
-      });
-    }
-
-    return res.status(400).json({
-      message: `Unexpected transaction status: ${data.status}`,
-      data,
-    });
-
   } catch (error) {
     console.error("Error verifying payment:", {
       message: error.message,
@@ -1413,17 +1406,13 @@ const Paymentverification = asyncHandler(async (req, res) => {
       status: error.response?.status,
     });
 
-    if (error.response) {
-      return res.status(error.response.status).json({
-        error: error.response.data?.message || "Payment verification failed",
-      });
-    }
+    const status = error.response?.status || 500;
+    const message = error.response?.data?.message || "An unexpected server error occurred";
 
-    return res.status(500).json({
-      error: "An unexpected server error occurred",
-    });
+    return res.status(status).json({ error: message });
   }
 });
+
 
 
 // get orders 
