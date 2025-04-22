@@ -1382,8 +1382,8 @@ const Paymentverification = asyncHandler(async (req, res) => {
 
     if (data.status === "success") {
 
-      const metadata = response;
-      console.log('response:', metadata);
+      const metadata =  JSON.parse(data.metadata);
+      console.log('response meta data:', metadata);
       return res.status(200).json({
         message: "Payment verified successfully",
         data,
