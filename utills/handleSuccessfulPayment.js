@@ -56,40 +56,55 @@ const sendPurchaseEmails = async ({ buyerEmail, sellerEmail, buyerName, sellerNa
 
 
 
-const handleSuccessfulPayment = async (data, res) => {
+  const handleSuccessfulPayment = async (data, res) => {
     try {
-      const metadata = JSON.parse(data.metadata);
-      const { itemId, buyerId, sellerid: sellerId, code: couponCode, buyerEmail, sellerEmail, sellerName, buyerName, itemName, itemPrice, buyerAddress, phoneNumber } = metadata;
+      const metadata = data.metadata ? JSON.parse(data.metadata) : null;
+  
+      if (!metadata) {
+        return res.status(400).json({ message: "No metadata found in transaction" });
+      }
+  
+      const {
+        itemId,
+        buyerId,
+        sellerid: sellerId,
+        code: couponCode,
+        buyerEmail,
+        sellerEmail,
+        sellerName,
+        buyerName,
+        itemName,
+        itemPrice,
+        buyerAddress,
+        phoneNumber
+      } = metadata;
   
       const amount = data.amount / 100;
+  
       const item = await Good.findById(itemId);
       if (!item) return res.status(404).json({ message: "Item not found" });
   
-      // Mark item as purchased
       item.purchased = true;
       await item.save();
   
-      // Update buyer's pending purchased amount
       const buyer = await User.findById(buyerId);
-      if (!buyer) return res.status(400).json({ message: "Can't find buyer" });
+      if (!buyer) return res.status(400).json("Can't find buyer");
+  
       buyer.pendingPurchasedAmount += amount;
       await buyer.save();
   
-      // Update seller's pending sold amount
       const seller = await User.findById(sellerId);
-      if (!seller) return res.status(400).json({ message: "Can't find seller" });
+      if (!seller) return res.status(400).json("Can't find seller");
+  
       seller.pendingSoldAmount += amount;
       await seller.save();
   
-      // Record order
-      const newOrder = new Order({
+      const newOrder = await new Order({
         buyer: buyerId,
         orderitems: item,
         purchased: true,
-      });
-      await newOrder.save();
+      }).save();
   
-      // Process coupon usage if available
       if (couponCode) {
         const coupon = await Coupon.findOne({ code: couponCode });
         if (coupon && coupon.isActive && new Date() <= coupon.expiryDate && coupon.usedCount < coupon.usageLimit) {
@@ -105,28 +120,54 @@ const handleSuccessfulPayment = async (data, res) => {
         }
       }
   
-      // Send notification emails
-      await sendPurchaseEmails({
+      await sendEmail(
+        "Item successfully purchased",
         buyerEmail,
-        sellerEmail,
+        process.env.EMAIL_USER,
+        "noreply@thritify.com",
+        "purchased@thriftiffy.com",
+        "buyerpurchased.",
+        null,
+        null,
         buyerName,
+        itemName,
+        sellerName,
+        null,
+        null,
+        null,
+        null,
+        null,
+        item.deliverydate
+      );
+  
+      await sendEmail(
+        "Your item has been purchased",
+        sellerEmail,
+        process.env.EMAIL_USER,
+        "noreply@thritify.com",
+        "purchased@thriftiffy.com",
+        "sellerpurchased.",
+        null,
+        null,
+        buyerName,
+        itemPrice,
         sellerName,
         itemName,
-        itemPrice,
         buyerAddress,
         phoneNumber,
-        deliveryDate: item.deliverydate,
-        orderId: newOrder._id,
-      });
+        `${process.env.FRONTEND_USER}/deliveryform/${newOrder._id}/${itemName}`,
+        null,
+        null
+      );
   
       return res.status(200).json({
         message: "Payment verified successfully and item updated",
         data,
       });
   
-    } catch (err) {
-      console.error("Error handling successful payment:", err.message);
-      return res.status(500).json({ error: "Failed to process payment details" });
+    } catch (error) {
+      console.error("Error handling successful payment:", error);
+      return res.status(500).json({ message: "Failed to process successful payment" });
     }
   };
   
