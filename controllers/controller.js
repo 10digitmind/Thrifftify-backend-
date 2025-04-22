@@ -1381,8 +1381,10 @@ const Paymentverification = asyncHandler(async (req, res) => {
 
     switch (data.status) {
       case "success":
-        await handleSuccessfulPayment(data, res);
-        break;
+        return res.status(200).json({
+          message: "payment successful.",
+          data,
+        });
 
       case "abandoned":
         return res.status(404).json({
