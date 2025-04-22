@@ -1419,7 +1419,11 @@ const Paymentverification = asyncHandler(async (req, res) => {
       if (!sellerdetails) {
         return res.status(400).json("Can't find seller");
       }
-      sellerdetails.pendingSoldAmount += metadata.itemName
+      const itemPrice = Number(metadata.itemPrice-60)
+      if (isNaN(itemPrice)) {
+        return res.status(400).json({ message: "Invalid item price provided" });
+      }
+      sellerdetails.pendingSoldAmount +=itemPrice
       await sellerdetails.save();
 
          // Save order
