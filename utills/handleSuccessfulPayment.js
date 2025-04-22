@@ -1,7 +1,8 @@
-const User = require('../model/Usermodel')
+
 const Coupon = require('../model/CouponModel')
 const Order = require('../model/Ordersmodel') 
-const sendEmail =require('../sendemail/sendemail')
+const {sendEmail} =require('../sendemail/sendemail')
+const User = require('../model/Usermodel')
 
 
 const sendPurchaseEmails = async ({ buyerEmail, sellerEmail, buyerName, sellerName, itemName, itemPrice, buyerAddress, phoneNumber, deliveryDate, orderId }) => {
