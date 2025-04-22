@@ -58,11 +58,9 @@ const sendPurchaseEmails = async ({ buyerEmail, sellerEmail, buyerName, sellerNa
 
 const handleSuccessfulPayment = async (data, res) => {
     try {
-        const metadata = data.metadata ? JSON.parse(data.metadata) : null;
+      const metadata = JSON.parse(data.metadata);
       const { itemId, buyerId, sellerid: sellerId, code: couponCode, buyerEmail, sellerEmail, sellerName, buyerName, itemName, itemPrice, buyerAddress, phoneNumber } = metadata;
-      if (!metadata) {
-        return res.status(400).json({ message: "No metadata found in transaction" });
-      }
+  
       const amount = data.amount / 100;
       const item = await Good.findById(itemId);
       if (!item) return res.status(404).json({ message: "Item not found" });
