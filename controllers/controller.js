@@ -1402,7 +1402,7 @@ const Paymentverification = asyncHandler(async (req, res) => {
     
       // Mark item as purchased
       item.purchased = true;
-      item.price = metadata.itemName
+      item.price = Number(metadata.itemPrice);
       await item.save();
 
     
