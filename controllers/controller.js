@@ -1382,12 +1382,14 @@ const Paymentverification = asyncHandler(async (req, res) => {
 
     if (data.status === "success") {
 
-      
+      const metadata = response.data.data.metadata;
+      console.log('Verified metadata:', metadata);
       return res.status(200).json({
         message: "Payment verified successfully",
         data,
    
       });
+      
     }
 
     if (data.status === "abandoned") {
