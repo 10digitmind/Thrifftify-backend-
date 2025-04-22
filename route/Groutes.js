@@ -23,6 +23,7 @@ const mailstorage = multer.diskStorage({
 });
 
 const mailupload = multer({ storage: mailstorage }).array('multiple', 2);
+const singleuplaod =multer({ storage: mailstorage }).single('image');
 
 
 
@@ -211,7 +212,7 @@ router.get(
 router.get("/api/users/getallordersforbuyer", protect, getallorders);
 
 //updated purchased item
-router.post("/api/users/updatepurchaseditem/:itemid", mailupload , UpdatePurchasedItem);
+router.post("/api/users/updatepurchaseditem/:itemid", singleuplaod , UpdatePurchasedItem);
 
 //confirm delivery
 
