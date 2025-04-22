@@ -1382,8 +1382,11 @@ const Paymentverification = asyncHandler(async (req, res) => {
 
     if (data.status === "success") {
 
-      const metadataString = data.metadata;  // this is a JSON string
-      const metadata = JSON.parse(metadataString);
+ // this is a JSON string
+      const metadata = typeof data.metadata === 'string' ? JSON.parse(data.metadata) : data.metadata;
+      console.log('metadat json:',metadata)
+
+   
       const itemId = metadata.itemId;
       const buyerId = metadata.buyerId;
       const sellerId = metadata.sellerid;
@@ -1399,7 +1402,9 @@ const Paymentverification = asyncHandler(async (req, res) => {
     
       // Mark item as purchased
       item.purchased = true;
+      item.price = metadata.itemName
       await item.save();
+
     
       // Update buyer details
       const buyerdetails = await User.findById(buyerId);
@@ -1414,7 +1419,7 @@ const Paymentverification = asyncHandler(async (req, res) => {
       if (!sellerdetails) {
         return res.status(400).json("Can't find seller");
       }
-      sellerdetails.pendingSoldAmount += metadata.itemPrice;
+      sellerdetails.pendingSoldAmount += metadata.itemName
       await sellerdetails.save();
 
          // Save order
@@ -1553,6 +1558,7 @@ const Paymentverification = asyncHandler(async (req, res) => {
 
     return res.status(500).json({
       error: "An unexpected server error occurred",
+      message: error.message
     });
   }
 });
