@@ -5,6 +5,7 @@ const cron = require("node-cron");
 const User = require("../model/Usermodel.js"); // Adjust path to your User model
 const { sendEmail } = require("../sendemail/sendemail.js"); // Adjust path to your sendEmail function
 const Good = require("../model/Goodmodel.js");
+const Review = require("../model/Reviews.js");
 
 async function sendVerificationReminders() {
   try {
@@ -296,7 +297,7 @@ async function userWithListings() {
         console.log(`⚠️ User ${user.email} has more than one listing.`);
 
         // Send email notification
-        const subject = "Congratulations on Your Listings!";
+        const subject = "Correct COUPON Code!";
         const send_to = user.email;
         const send_from = process.env.EMAIL_USER;
         const reply_to = "noreply@thriftify.com";
@@ -394,10 +395,6 @@ async function generalNotification() {
 
 
 
-
-
-
-
 const client = new TwitterApi({
   appKey:process.env.TWITTER_API_KEY,
   appSecret: process.env.TWITTER_SECRET_KEY,
@@ -467,6 +464,44 @@ const postRandomTweet = async () => {
 
 
 
+
+async function giveReview() {
+  try {
+    console.log("🔄 Checking users with more than one listing...");
+
+    // Find all verified users
+    const users = await User.find({ isVerified: true });
+
+    for (const user of users) {
+      // Find goods belonging to the user
+      const userGoods = await Good.find({ userId: user._id });
+
+      console.log('This is user goods:', userGoods);
+
+      // Check if the user has more than one listed item
+      if (userGoods.length >= 1) { // Check for users with at least one listing
+        console.log(`⚠️ User ${user.firstname} has listings and is eligible for a review.`);
+
+        const review = new Review({
+          userId: user._id,
+          rating: 5, // Default rating
+          name: "Thriftiffy", // Assuming 'name' field in User schema
+          comment: "Auto-feedback: Sale completed successfully.", // Default comment
+        });
+    
+        await review.save();  // Save the review
+
+        console.log(`✅ Review given for user ${user.firstname}`);
+      }
+    }
+  } catch (error) {
+    console.error("❌ Error running first listing notification:", error.message);
+  }
+}
+
+
+
+
 module.exports = {
   sendVerificationReminders,
   userWithListings,
@@ -477,3 +512,4 @@ module.exports = {
   generalNotification,
   postRandomTweet
 };
+
