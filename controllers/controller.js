@@ -1144,17 +1144,24 @@ const createGood = asyncHandler(async (req, res) => {
     good.allusergoods = usergoods;
 
     await good.save();
-    if (usergoods.length === 1) {
-      await firstListingNotification(user._id);
-    }
-    const review = new Review({
-      userId: user._id,
-      rating: 5, // Default rating
-      name: "Thriftiffy", // Assuming 'name' field in User schema
-      comment: "Auto-feedback: Sale completed successfully.", // Default comment
-    });
 
-    await review.save();  // Save the review
+    const updatedGoods = await Good.find({ userId: user._id });
+
+    if (updatedGoods.length === 1) {
+      await firstListingNotification(user._id);
+
+      const review = new Review({
+        userId: user._id,
+        rating: 5, // Default rating
+        name: "Thriftiffy", // Assuming 'name' field in User schema
+        comment: "Auto-feedback: Sale completed successfully.", // Default comment
+      });
+  
+      await review.save(); 
+    }
+
+
+    // Save the review
 
     if (good) {
   
