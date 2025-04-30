@@ -1080,6 +1080,8 @@ const changePassword = asyncHandler(async (req, res) => {
 // create goods
 
 const createGood = asyncHandler(async (req, res) => {
+
+
   const {
     title,
     itemDescription,
@@ -1095,6 +1097,30 @@ const createGood = asyncHandler(async (req, res) => {
     images,
     deliverydate
   } = req.body;
+
+  const bannedKeywords = [
+    "fridge", "refrigerator", "phone", "phones", "mobile", "smartphone", "samsung",
+    "iphone", "itel", "tecno", "infinix", "generator", "powerbank", "inverter",
+    "oven", "cooker", "microwave", "blender", "freezer", "tv", "television",
+    "plasma", "led", "lcd", "monitor", "gas", "cylinder", "ac", "airconditioner",
+    "fan", "heater", "washing machine", "dryer", "iron", "macbook", "mac book",
+    "laptop", "notebook", "pc", "desktop", "console", "ps5", "ps4", "xbox",
+    "nintendo", "controller", "joystick", "game", "games", "camera", "dslr", 
+    "printer", "scanner", "modem", "router", "earphones", "headphones", "earbuds",
+    "smartwatch", "tablet", "ipad", "kindle", "electronic", "electronics", "appliance"
+  ];
+  
+ // ✅ Check if title contains any banned keyword
+ const titleLower = title.toLowerCase();
+ const containsBanned = bannedKeywords.some(keyword =>
+   titleLower.includes(keyword)
+ );
+
+ if (containsBanned) {
+   return res.status(400).json({
+     message: "Only clothing, bags, and accessories are allowed on Thriftiffy."
+   });
+ }
 
   try {
     const user = await User.findById(req.user._id);
