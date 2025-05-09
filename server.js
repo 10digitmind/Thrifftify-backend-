@@ -95,7 +95,7 @@ mongoose
   .connect(process.env.MONGO_URL) 
   .then(() => {
   
-    server.listen(PORT, () => {
+    app.listen(PORT, () => {
       console.log(`HTTPS server running on https://localhost:${PORT}`);
     });
   })
