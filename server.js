@@ -19,7 +19,13 @@ const server = http.createServer(app);
 
 const io = new Server(server, {
     cors: {
-      origin: "http://localhost:3000", // In production, replace with your domain
+      origin: [
+        "http://localhost:3000",
+        "https://thrifftify-backend.onrender.com",
+        'https://thrifftify-fronend.vercel.app',
+        'https://www.thriftiffy.com',
+        "http://localhost:3001",
+      ], // In production, replace with your domain
       methods: ["GET", "POST"],
       credentials: true,
     }
