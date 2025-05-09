@@ -26,7 +26,7 @@ const io = new Server(server, {
         'https://www.thriftiffy.com',
         "http://localhost:3001",
       ], // In production, replace with your domain
-      methods: ["GET", "POST"],
+      methods: ["GET", "POST", "PUT", "DELETE",'PATCH'],
       credentials: true,
     }
   });
