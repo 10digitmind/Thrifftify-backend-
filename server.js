@@ -7,7 +7,7 @@ const path = require("path");
 const { engine } = require("express-handlebars");
 const cors = require("cors");
 const groute = require("./route/Groutes.js");
-const socketHandler = require('../backend/sockets/socketHandler.js'); // ⬅️ new file
+const socketHandler = require('./sockets/socketHandler.js'); // ⬅️ new file
 
 const http = require('http');
 const { Server } = require('socket.io');
