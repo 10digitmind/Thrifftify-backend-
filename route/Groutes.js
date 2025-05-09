@@ -57,7 +57,7 @@ const {
   Paymentverification,
   getallorders,
   UpdatePurchasedItem,
-  updatealluserinfo,
+  updateAllUserInfo,
   Trackpurchaseditem,
   ConfirmDelivery,
   Disputedelivery,
@@ -75,7 +75,11 @@ const {
   googleLogin,
   checkoutItem,
   createCoupon,
-  verifyCoupon
+  verifyCoupon,
+  chat,
+  userCoversation,
+  getSellerStatus
+
 } = require("../controllers/controller");
 
 const {ninVerification} = require('../controllers/Ninverification.js')
@@ -108,7 +112,7 @@ router.get("/api/users/getuser",protect, getUser);
 router.patch("/api/users/updateuser", protect, updateUser);
 
 //update alluserinfo
-router.patch("/api/users/updatealluserinfo",protect, adminOnly, updatealluserinfo);
+router.patch("/api/users/updatealluserinfo",protect,adminOnly, updateAllUserInfo);
 //delete user
 router.delete("/api/users/deleteuser/:id", protect, deleteUser);
 
@@ -230,7 +234,7 @@ router.get("/api/users/Trackpurchaseditem/:itemid", Trackpurchaseditem);
 //update all userinfor
 
 
-router.patch("/api/users/updatealluserinfo",protect, updatealluserinfo);
+router.patch("/api/users/updatealluserinfo",protect, updateAllUserInfo);
 
 router.post("/api/users/requestwithdrawal",protect, requestWithdrawal);
 
@@ -255,6 +259,13 @@ router.post("/api/users/googlelogin", googleLogin);
 
 router.post("/api/users/createcoupon", createCoupon);
 router.get("/api/users/verifycoupon", verifyCoupon);
+router.get("/api/users/chat/:userId", protect,chat);
+router.get("/api/users/userconversation/:roomId",protect, userCoversation);
+router.get("/api/users/getsellerstatus/:sellerId", getSellerStatus);
+
+
+
+
 
 
 

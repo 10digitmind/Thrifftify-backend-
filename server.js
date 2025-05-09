@@ -7,10 +7,25 @@ const path = require("path");
 const { engine } = require("express-handlebars");
 const cors = require("cors");
 const groute = require("./route/Groutes.js");
-const fs = require('fs');
+const socketHandler = require('../backend/sockets/socketHandler.js'); // ⬅️ new file
+
+const http = require('http');
+const { Server } = require('socket.io');
 
 
 const app = express();
+
+const server = http.createServer(app);
+
+const io = new Server(server, {
+    cors: {
+      origin: "http://localhost:3000", // In production, replace with your domain
+      methods: ["GET", "POST"],
+      credentials: true,
+    }
+  });
+
+
 
 // Middleware
 app.use(express.json());
@@ -64,19 +79,23 @@ app.use((req, res, next) => {
   next();
 });
 
+// socket.io
 
 
 // MongoDB Connection and Server Start
 const PORT = process.env.PORT || 3500;
 
 mongoose
-  .connect(process.env.MONGO_URL) // Removed useNewUrlParser and useUnifiedTopology
+  .connect(process.env.MONGO_URL) 
   .then(() => {
-    app.listen(PORT, () => {
+  
+    server.listen(PORT, () => {
       console.log(`HTTPS server running on https://localhost:${PORT}`);
     });
   })
   .catch((error) => {
+    console.log(error);
     console.error("Database connection error:", error.message);
   });
   
+  socketHandler(io);

@@ -15,6 +15,7 @@ const Good = require("../model/Goodmodel.js");
 const Coupon = require('../model/CouponModel.js')
 const CouponUsage =require("../model/Couponuseagemodel.js");
 const DeletedUser = require('../model/DeletedUser.js')
+const Chat = require('../model/chatRoomSchema.js')
 const Review = require("../model/Reviews.js");
 const crypto = require('crypto')
 const CryptoJS = require('crypto-js');
@@ -44,6 +45,7 @@ const saveDailySignupCount = require('../utills/savedailysignupcount.js')
 
 const countSignupsPerDay = require('../utills/userdailycount.js')
 const { OAuth2Client } = require('google-auth-library');
+const { json } = require("body-parser");
 const client = new OAuth2Client('YOUR_GOOGLE_CLIENT_ID');
 
 //-------------utilities functions
@@ -631,7 +633,9 @@ const getUser = asyncHandler(async (req, res) => {
       userAgent,
       verificationRequested,
       contactType,
-      username
+      username,
+      online,
+      lastSeen
     } = user;
 
     const passphrase = process.env.CRYPTO_JS
@@ -664,7 +668,9 @@ const getUser = asyncHandler(async (req, res) => {
       pendingPurchasedAmount,
       userAgent,
       verificationRequested,
-      contactType
+      contactType,
+      online,
+      lastSeen
     });
     console.log("User response sent successfully");
   } catch (error) {
@@ -1138,6 +1144,7 @@ const createGood = asyncHandler(async (req, res) => {
       email: user.email,
       about: user.about,
       sellerid: user._id,
+      sellerStatus:user.online,
       sucessfulldelivery: user.successfullDelivery,
 
       // Add other fields as necessary
@@ -1722,24 +1729,27 @@ const UpdatePurchasedItem = asyncHandler(async (req, res) => {
   }
 });
 
-const updatealluserinfo = asyncHandler(async (req, res) => {
+const updateAllUserInfo = asyncHandler(async (req, res) => {
   try {
     const result = await User.updateMany(
-      {
-        /* You can add conditions here if needed */
-      },
+      {}, // optional: add conditions if needed
       {
         $set: {
-          verificationRequested:false
+        
+          online: false,
+          offline:false,
+          lastSeen: null,
         },
       }
     );
 
-    return res.status(200).json(result);
+    return res.status(200).json({ updated: result.modifiedCount });
   } catch (error) {
     console.error("Error updating users with new fields:", error);
+    res.status(500).json({ error: "Internal Server Error" });
   }
 });
+
 
 const Trackpurchaseditem = asyncHandler(async (req, res) => {
   const { itemid } = req.params;
@@ -2760,40 +2770,40 @@ const checkoutItem = asyncHandler(async (req, res) => {
 
    // Send email notification to admin (or seller, depending on your flow)
    
-    const subject = "someone currently checking your item - Thriftify";
-    const send_to = 'olubodekehinde2019@gmail.com';  // or item's seller email if you prefer
-    const send_from = process.env.EMAIL_USER;
-    const reply_to = "noreply@thriftify.com";
-    const template = "checkoutalert.";  // a template key if you're using one
-    const name = item.sellerdetails[0].firstname; // or buyer name if applicable
-    const itemname = item.title;
+    // const subject = "someone currently checking your item - Thriftify";
+    // const send_to = 'olubodekehinde2019@gmail.com';  // or item's seller email if you prefer
+    // const send_from = process.env.EMAIL_USER;
+    // const reply_to = "noreply@thriftify.com";
+    // const template = "checkoutalert.";  // a template key if you're using one
+    // const name = item.sellerdetails[0].firstname; // or buyer name if applicable
+    // const itemname = item.title;
 
-    try {
-      await sendEmail(
-        subject,
-        send_to,
-          send_from,
-          reply_to,
-          null,
-          template,
-          name,
-          null,
-          null,
-          null,
-          null,
-          itemname,
-          null,
-          null,
-          null,
-          null,
-          null,
-       null
-      );
-      console.log(`Checkout alert sent to admin: ${send_to}`);
-    } catch (emailError) {
-      console.error("Failed to send checkout alert:", emailError.message);
-      // Don't block checkout if email fails — just log it.
-    }
+    // try {
+    //   await sendEmail(
+    //     subject,
+    //     send_to,
+    //       send_from,
+    //       reply_to,
+    //       null,
+    //       template,
+    //       name,
+    //       null,
+    //       null,
+    //       null,
+    //       null,
+    //       itemname,
+    //       null,
+    //       null,
+    //       null,
+    //       null,
+    //       null,
+    //    null
+    //   );
+    //   console.log(`Checkout alert sent to admin: ${send_to}`);
+    // } catch (emailError) {
+    //   console.error("Failed to send checkout alert:", emailError.message);
+    //   // Don't block checkout if email fails — just log it.
+    // }
 
    
     res.status(200).json(item);
@@ -2857,6 +2867,55 @@ const verifyCoupon = async (req, res) => {
 };
 
 
+const chat = async (req, res) => {
+  try {
+    const { userId } = req.params;
+
+    if (!userId) {
+      return res.status(400).json({ message: 'userId is required' });
+    }
+
+    const chatrooms = await Chat.find({
+      $or: [
+        { buyerId: userId },
+        { sellerId: userId }
+      ]
+    }).sort({ updatedAt: -1 });
+
+    res.json(chatrooms);
+  } catch (error) {
+    res.status(500).json({ message: 'Failed to get chats', error: error.message });
+  }
+};
+
+const userCoversation = async (req, res) => {
+  try {
+    const { roomId } = req.params;
+
+    if (!roomId) {
+      return res.status(400).json({ message: 'roomId is required' });
+    }
+
+    const chatroom = await Chat.findOne({ roomId });
+
+    if (!chatroom) {
+      return res.status(404).json({ message: 'Chat room not found' });
+    }
+
+    res.json(chatroom);
+  } catch (error) {
+    res.status(500).json({ message: 'Failed to get chats', error: error.message });
+  }
+};
+
+
+
+
+
+
+
+
+
 // Run at midnight every day
 cron.schedule('50 23 * * *', saveDailySignupCount);
 
@@ -2885,6 +2944,34 @@ cron.schedule("0 11 * * *", postRandomTweet);
 
 //cron jobs 
 
+const getSellerStatus = async (req, res) => {
+  try {
+    const { sellerId } = req.params;
+
+    if (!sellerId) {
+      return res.status(400).json({ message: 'sellerId is required' });
+    }
+
+    const user = await User.findById( sellerId );
+
+    if (!user) {
+      return res.status(404).json({ message: 'seller not found' });
+    }
+
+    res.json(user.online);
+  } catch (error) {
+    res.status(500).json({ message: 'Failed to get chats', error: error.message });
+  }
+};
+
+
+
+
+// Execute it
+
+
+
+// Call the function
 
 
  
@@ -2917,7 +3004,7 @@ module.exports = {
   Paymentverification,
   getallorders,
   UpdatePurchasedItem,
-  updatealluserinfo,
+  updateAllUserInfo,
   Trackpurchaseditem,
   ConfirmDelivery,
   Disputedelivery,
@@ -2935,5 +3022,9 @@ module.exports = {
   googleLogin,
   checkoutItem,
   verifyCoupon,
-  createCoupon
+  createCoupon,
+  chat,
+  userCoversation,
+  getSellerStatus
+
 };

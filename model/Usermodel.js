@@ -134,6 +134,15 @@ const Userschmema = mongoose.Schema(
     contactType:{
       type:String,
       default:''
+    },
+    online:{
+      type:Boolean,
+      default:false
+    },
+ 
+    lastSeen:{
+      type:Date,
+      default:null
     }
    
   },
