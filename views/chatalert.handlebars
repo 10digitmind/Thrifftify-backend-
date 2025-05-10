@@ -24,6 +24,12 @@
 
     section {
       margin-top: 20px;
+
+    }
+    .name{
+        color: green;
+        font-style: italic;
+        font-size: 16px;
     }
   </style>
 </head>
@@ -36,7 +42,7 @@
   <section>
     <h2>Hello {{name}},</h2>
     <p>
-      You have a new message from {{sellername}} regarding <strong>{{itemname}}</strong>.
+      You have a new message from <span class="name">{{sellername}}</span> regarding <strong>{{itemname}}</strong>.
     </p>
     <p>
       To view and reply to the message, please click the link below:
