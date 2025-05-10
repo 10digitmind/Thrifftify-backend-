@@ -125,14 +125,16 @@ module.exports = (io) => {
         chatroom.updatedAt = new Date();
 
         await chatroom.save();
-
+        
         io.to(roomId).emit('receive_message', {
           roomId,
           ...message,
         });
         let recipientId = (senderId === buyerId) ? sellerId : buyerId;
+      
 
 const recipient = await User.findById(recipientId);
+
 
 if (recipient && !recipient.online) {
   await sendChatAlert({

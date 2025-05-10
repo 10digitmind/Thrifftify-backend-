@@ -359,7 +359,7 @@ async function generalNotification() {
     }
 
     for (const user of users) { 
-      const subject = "Win 300k cash! 🎉";
+      const subject = "Chat with seller and buyer on thrifitify 🎉";
       const send_to = user.email;
       const send_from = process.env.EMAIL_USER;
       const reply_to = "noreply@thrifify.com";
