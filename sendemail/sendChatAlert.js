@@ -13,7 +13,7 @@ const sendChatAlert = async ({
       /* sent_from    */ `"Thriftify" <${process.env.EMAIL_USER}>`,
       /* reply_to     */ process.env.EMAIL_USER,
       /* cc           */ null,
-      /* template     */ "chatAlert.",          // → views/chatAlert.handlebars
+      /* template     */ "chatalert.",          // → views/chatAlert.handlebars
       /* name         */ receiverName,
       /* link         */ chatLink,
       /* buyername    */ null,
