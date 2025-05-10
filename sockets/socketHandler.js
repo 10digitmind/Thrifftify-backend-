@@ -134,6 +134,7 @@ module.exports = (io) => {
       
 
 const recipient = await User.findById(recipientId);
+const buyer =  await User.findById(buyerId);
 
 
 if (recipient && !recipient.online) {
@@ -144,8 +145,15 @@ if (recipient && !recipient.online) {
     itemName: itemTitle || "an item",
     chatLink: `${process.env.FRONTEND_USER}/chatroom/${roomId}/${itemId}`,
   });
+}else if(!buyer.online){
+  await sendChatAlert({
+    receiverEmail: buyer.email,
+    receiverName: buyer.firstname,
+    senderName: senderName,
+    itemName: itemTitle || "an item",
+    chatLink: `${process.env.FRONTEND_USER}/chatroom/${roomId}/${itemId}`,
+  });
 }
-
 
       } catch (err) {
         console.error('Error in send_message:', err);
