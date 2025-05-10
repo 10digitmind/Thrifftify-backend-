@@ -2,6 +2,7 @@ const Chatroom = require('../model/chatRoomSchema'); // Adjust path as needed
 const Goods = require('../model/Goodmodel');
 const socketAuth = require("../sockets/middleware/socketAuth");
 const User = require('../model/Usermodel');
+const {sendChatAlert}= require('../sendemail/sendChatAlert')
 
 module.exports = (io) => {
   io.use(socketAuth); // Assumes socket.user is set here
@@ -129,6 +130,20 @@ module.exports = (io) => {
           roomId,
           ...message,
         });
+        let recipientId = (senderId === buyerId) ? sellerId : buyerId;
+
+const recipient = await User.findById(recipientId);
+
+if (recipient && !recipient.online) {
+  await sendChatAlert({
+    receiverEmail: recipient.email,
+    receiverName: recipient.firstname,
+    senderName: senderName,
+    itemName: itemTitle || "an item",
+    chatLink: `${process.env.FRONTEND_USER}/chatroom/${roomId}`,
+  });
+}
+
 
       } catch (err) {
         console.error('Error in send_message:', err);
