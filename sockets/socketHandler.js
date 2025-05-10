@@ -12,16 +12,26 @@ module.exports = (io) => {
 
     const updateUserStatus = async (isOnline) => {
       try {
+        const updateFields = { online: isOnline };
+    
+        if (!isOnline) {
+          updateFields.lastSeen = new Date();
+        } else {
+          updateFields.lastSeen = null;
+        }
+    
         const updatedUser = await User.findByIdAndUpdate(
           user._id,
-          { $set: { online: isOnline, lastSeen: isOnline ? null : new Date() } },
+          { $set: updateFields },
           { new: true }
         );
+    
         console.log(`${updatedUser.firstname} is now ${isOnline ? 'online' : 'offline'}.`);
       } catch (err) {
         console.error('Error updating user status:', err);
       }
     };
+    
 
     updateUserStatus(true);
 

@@ -2958,7 +2958,10 @@ const getSellerStatus = async (req, res) => {
       return res.status(404).json({ message: 'seller not found' });
     }
 
-    res.json(user.online);
+    res.json({
+      online: user.online,
+      lastSeen: user.lastSeen,
+    });
   } catch (error) {
     res.status(500).json({ message: 'Failed to get chats', error: error.message });
   }
