@@ -140,7 +140,7 @@ if (recipient && !recipient.online) {
     receiverName: recipient.firstname,
     senderName: senderName,
     itemName: itemTitle || "an item",
-    chatLink: `${process.env.FRONTEND_USER}/chatroom/${roomId}`,
+    chatLink: `${process.env.FRONTEND_USER}/chatroom/${roomId}/${itemId}`,
   });
 }
 
