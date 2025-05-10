@@ -27,6 +27,7 @@ const io = new Server(server, {
         "http://localhost:3001",
       ], // In production, replace with your domain
       methods: ["GET", "POST", "PUT", "DELETE",'PATCH'],
+      allowedHeaders: ["Content-Type", "Authorization"],
       credentials: true,
     }
   });
