@@ -78,7 +78,8 @@ const {
   verifyCoupon,
   chat,
   userCoversation,
-  getSellerStatus
+  getSellerStatus,
+  initChat
 
 } = require("../controllers/controller");
 
@@ -262,6 +263,7 @@ router.get("/api/users/verifycoupon", verifyCoupon);
 router.get("/api/users/chat/:userId", protect,chat);
 router.get("/api/users/userconversation/:roomId",protect, userCoversation);
 router.get("/api/users/getsellerstatus/:sellerId", getSellerStatus);
+router.post("/api/users/initchat", protect, initChat);
 
 
 

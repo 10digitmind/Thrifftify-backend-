@@ -47,7 +47,7 @@ const countSignupsPerDay = require('../utills/userdailycount.js')
 const { OAuth2Client } = require('google-auth-library');
 const { json } = require("body-parser");
 const client = new OAuth2Client('YOUR_GOOGLE_CLIENT_ID');
-
+const Chatroom = require('../model/chatRoomSchema');
 //-------------utilities functions
 // genrate toeken function
 const generateToken = (id) => {
@@ -2968,13 +2968,48 @@ const getSellerStatus = async (req, res) => {
 };
 
 
+const initChat = async (req, res) => {
+  try {
+    const { itemId } = req.body;
+    const buyerId = req.user.id;
+     const buyerName = req.user.firstname
+  
+    const item = await Good.findById(itemId);
+    if (!item) return res.status(404).json({ error: 'Item not found' });
+
+    const sellerDetails = item.sellerdetails?.[0];
+    sellerId = sellerDetails?.sellerid;
+    sellerName = sellerDetails?.firstname;
+  
+    const participants = [buyerId, sellerId].sort();
+    const roomId = `${itemId}_${participants[0]}_${participants[1]}`;
+  
+    let chatroom = await Chatroom.findOne({ roomId });
+  
+    if (!chatroom) {
+      chatroom = new Chatroom({
+        roomId,
+        itemId,
+        buyerId,
+        sellerId,
+        sellerName,
+        buyerName,
+        messages: [],
+        itemTitle: item.title,
+        itemImageUrl: item.images?.[0],
+      });
+      await chatroom.save();
+    }
+  
+    res.json({ roomId, chatroom });
+  } catch (error) {
+    res.status(500).json({ message: 'Failed to get chats', error: error.message });
+  }
+};
 
 
-// Execute it
 
 
-
-// Call the function
 
 
  
@@ -3028,6 +3063,7 @@ module.exports = {
   createCoupon,
   chat,
   userCoversation,
-  getSellerStatus
+  getSellerStatus,
+  initChat
 
 };

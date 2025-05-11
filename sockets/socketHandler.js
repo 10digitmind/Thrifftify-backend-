@@ -36,130 +36,62 @@ module.exports = (io) => {
 
     updateUserStatus(true);
 
-    socket.on('send_message', async ({ itemId, content, buyerName, buyerId }) => {
+    socket.on('send_message', async ({ roomId, content }) => {
       try {
         const senderId = user._id.toString();
         const senderName = user.firstname;
-
-        let roomId;
-        let chatroom;
-        let sellerId, sellerName, itemTitle, itemImageUrl;
-
-        if (itemId) {
-          const chatItem = await Goods.findById(itemId);
-          if (!chatItem) return socket.emit('error_message', 'Item not found.');
-
-          const sellerDetails = chatItem.sellerdetails?.[0];
-          sellerId = sellerDetails?.sellerid;
-          sellerName = sellerDetails?.firstname;
-          itemImageUrl = chatItem.images?.[0];
-          itemTitle = chatItem.title;
-
-          if (!sellerId || !content) {
-            return socket.emit('error_message', 'Missing required fields.');
-          }
-
-          roomId = `${itemId}_${buyerId}_${sellerId}`;
-          socket.join(roomId);
-
-          chatroom = await Chatroom.findOne({ roomId });
-
-          if (!chatroom) {
-            chatroom = new Chatroom({
-              roomId,
-              buyerId,
-              buyerName,
-              sellerId,
-              sellerName,
-              itemId,
-              itemTitle,
-              itemImageUrl,
-              isItemChat: true,
-              messages: [],
-            });
-          }
-        } else {
-          if (!buyerId || !content) {
-            return socket.emit('error_message', 'Missing buyer or content.');
-          }
-
-          roomId = [buyerId, senderId].sort().join('_');
-          socket.join(roomId);
-
-          chatroom = await Chatroom.findOne({ roomId });
-
-          if ((!buyerName || buyerId === senderId) && chatroom) {
-            buyerId = chatroom.buyerId;
-            buyerName = chatroom.buyerName;
-          }
-
-          if (!chatroom && buyerId !== senderId) {
-            const receiverId = buyerId === senderId ? null : buyerId;
-            const receiverName = buyerName;
-
-            chatroom = new Chatroom({
-              roomId,
-              buyerId: senderId,
-              buyerName: senderName,
-              sellerId: receiverId,
-              sellerName: receiverName,
-              isItemChat: false,
-              messages: [],
-            });
-          }
-        }
-
-        if (!chatroom) {
-          return socket.emit('error_message', 'Could not create or find chatroom.');
-        }
-
+    
+        if (!content) return socket.emit('error_message', 'Message content is required.');
+        if (!roomId) return socket.emit('error_message', 'Room ID is required.');
+    
+       
+        socket.join(roomId);
+    
+        let chatroom = await Chatroom.findOne({ roomId });
+        if (!chatroom) return socket.emit('error_message', 'Chatroom not found.');
+     
+    
         const message = {
           senderId,
           senderName,
           content,
           timestamp: new Date(),
         };
-
+    
         chatroom.messages.push(message);
         chatroom.lastMessage = content;
         chatroom.updatedAt = new Date();
-
+    
         await chatroom.save();
-        
+    
         io.to(roomId).emit('receive_message', {
           roomId,
           ...message,
         });
-        let recipientId = (senderId === buyerId) ? sellerId : buyerId;
-      
-
-const recipient = await User.findById(recipientId);
-const buyer =  await User.findById(buyerId);
-
-
-if (recipient && !recipient.online) {
-  await sendChatAlert({
-    receiverEmail: recipient.email,
-    receiverName: recipient.firstname,
-    senderName: senderName,
-    itemName: itemTitle || "an item",
-    chatLink: `${process.env.FRONTEND_USER}/chatroom/${roomId}/${itemId}`,
-  });
-}else if(!buyer.online){
-  await sendChatAlert({
-    receiverEmail: buyer.email,
-    receiverName: buyer.firstname,
-    senderName: senderName,
-    itemName: itemTitle || "an item",
-    chatLink: `${process.env.FRONTEND_USER}/chatroom/${roomId}/${itemId}`,
-  });
-}
-
+    
+    
+        // --- Optional Notification ---
+        const recipientId = senderId === chatroom.buyerId ? chatroom.sellerId : chatroom.buyerId;
+        const recipient = await User.findById(recipientId);
+        const chatLink = `${process.env.FRONTEND_USER}/chatroom/${chatroom.itemId || ''}/${roomId}`;
+    
+        if (recipient && !recipient.online) {
+          await sendChatAlert({
+            receiverEmail: recipient.email,
+            receiverName: recipient.firstname,
+            senderName,
+            itemName: chatroom.itemTitle || "an item",
+            chatLink,
+          });
+        }
+    
       } catch (err) {
         console.error('Error in send_message:', err);
         socket.emit('error_message', 'Failed to send message.');
       }
     });
+    
+    
 
     socket.on('disconnect', async () => {
       console.log('User disconnected:', user.firstname, user._id.toString());
