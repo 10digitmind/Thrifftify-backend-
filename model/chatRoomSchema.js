@@ -15,7 +15,13 @@ const chatSchema = new mongoose.Schema({
       senderId:  { type: String,   required: true },
       senderName: { type: String, required: true },
       content: { type: String, required: true },
-      timestamp: { type: Date, default: Date.now }
+      timestamp: { type: Date, default: Date.now },
+      status: {
+        type: String,
+        enum: ['sent', 'delivered', 'read'],
+        default: 'sent'
+      },
+      readBy: { type: String, }
     }
   ],
   lastMessage: { type: String },

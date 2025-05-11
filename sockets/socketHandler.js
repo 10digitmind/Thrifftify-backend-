@@ -56,6 +56,8 @@ module.exports = (io) => {
           senderName,
           content,
           timestamp: new Date(),
+          status: 'sent',
+          readBy: [],j
         };
     
         chatroom.messages.push(message);
