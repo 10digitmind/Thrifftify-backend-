@@ -16,14 +16,8 @@ const chatSchema = new mongoose.Schema({
       senderName: { type: String, required: true },
       content: { type: String, required: true },
       timestamp: { type: Date, default: Date.now },
-      status: {
-        type: String,
-        enum: ['sent', 'delivered', 'read'],
-        default: 'sent'
-      },
-      readBy: { type: String, }
     }
-  ],
+    ],
   lastMessage: { type: String },
   updatedAt: { type: Date, default: Date.now }
 });
