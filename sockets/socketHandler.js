@@ -64,8 +64,6 @@ module.exports = (io) => {
 
           chatroom = await Chatroom.findOne({ roomId });
 
-         console.log(chatroom)
-
           if (!chatroom) {
             chatroom = new Chatroom({
               roomId,
