@@ -205,37 +205,37 @@ const correctPassword = await bcrypt.compare(password, user.password);
     }
 
 //triger 2fa
-  // const ua = parser(req.headers["user-agent"]);
+  const ua = parser(req.headers["user-agent"]);
 
-  // const currentUserAgent = [ua.ua];
+  const currentUserAgent = [ua.ua];
 
-  // const allowedAgent = user.userAgent.includes(currentUserAgent);
+  const allowedAgent = user.userAgent.includes(currentUserAgent);
 
-  // if (!allowedAgent) {
-  //   //gereate 6digit code
-  //   const loginCode = Math.floor(100000 + Math.random() * 90000);
+  if (!allowedAgent) {
+    //gereate 6digit code
+    const loginCode = Math.floor(100000 + Math.random() * 90000);
   
 
-  //   // ecyrpt login code before saving database
-  //   const encryptedLoginCode = cryptr.encrypt(loginCode.toString());
+    // ecyrpt login code before saving database
+    const encryptedLoginCode = cryptr.encrypt(loginCode.toString());
 
-  //   // Delete existing reset password token if it exists
-  //   let userToken = await Token.findOne({ userId: user._id });
-  //   if (userToken) {
-  //     await userToken.deleteOne();
-  //   }
-  //   //SAVETOKEN
+    // Delete existing reset password token if it exists
+    let userToken = await Token.findOne({ userId: user._id });
+    if (userToken) {
+      await userToken.deleteOne();
+    }
+    //SAVETOKEN
 
-  //   await new Token({
-  //     userId: user._id,
-  //     loginToken: encryptedLoginCode,
-  //     createdAt: Date.now(),
-  //     expiresAt: Date.now() + 60 * (60 * 1000),
-  //   }).save();
+    await new Token({
+      userId: user._id,
+      loginToken: encryptedLoginCode,
+      createdAt: Date.now(),
+      expiresAt: Date.now() + 60 * (60 * 1000),
+    }).save();
 
-  //   res.status(401).json(
-  //     "New device or browser detected" );
-  // }
+    res.status(401).json(
+      "New device or browser detected" );
+  }
 
   // //generate token
 
