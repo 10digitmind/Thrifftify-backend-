@@ -286,7 +286,7 @@ async function userWithListings() {
     console.log("🔄 Checking users with more than one listing...");
 
     // Find all verified users
-    const users = await User.find({ idVerified: true });
+    const users = await User.find({ isVerified: true });
 
     for (const user of users) {
       // Find goods belonging to the user
@@ -297,7 +297,7 @@ async function userWithListings() {
         console.log(`⚠️ User ${user.email} has more than one listing.`);
 
         // Send email notification
-        const subject = "Correct COUPON Code!";
+        const subject = "Come Online Buyers are wating ";
         const send_to = user.email;
         const send_from = process.env.EMAIL_USER;
         const reply_to = "noreply@thriftify.com";
@@ -498,7 +498,6 @@ async function giveReview() {
     console.error("❌ Error running first listing notification:", error.message);
   }
 }
-
 
 
 
