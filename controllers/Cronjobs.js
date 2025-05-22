@@ -287,15 +287,17 @@ async function userWithListings() {
 
     // Find all verified users
     const users = await User.find({ isVerified: true });
-
+ 
     for (const user of users) {
       // Find goods belonging to the user
       const userGoods = await Good.find({ userId: user._id });
-
+     
       // Check if the user has more than one listed item
       if (userGoods.length >= 1) {
         console.log(`⚠️ User ${user.email} has more than one listing.`);
+       
 
+         console.log('total user with listing',totalUserWithListing.length)
         // Send email notification
         const subject = "Come Online Buyers are wating ";
         const send_to = user.email;

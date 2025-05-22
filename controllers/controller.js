@@ -237,7 +237,7 @@ const correctPassword = await bcrypt.compare(password, user.password);
   //     "New device or browser detected" );
   // }
 
-  // //generate token
+
 
 
     // Generate token
@@ -555,7 +555,7 @@ const verifyUser = asyncHandler(async (req, res) => {
   // find user
 
   const user = await User.findOne({ _id: userToken.userId });
-  console.log(user);
+
 
   if (user.isVerified) {
     res.status(400);
