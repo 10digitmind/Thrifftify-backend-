@@ -287,7 +287,8 @@ async function userWithListings() {
 
     // Find all verified users
     const users = await User.find({ isVerified: true });
- 
+
+    let totalseller = []
     for (const user of users) {
       // Find goods belonging to the user
       const userGoods = await Good.find({ userId: user._id });
@@ -295,9 +296,8 @@ async function userWithListings() {
       // Check if the user has more than one listed item
       if (userGoods.length >= 1) {
         console.log(`⚠️ User ${user.email} has more than one listing.`);
-       
-
-         console.log('total user with listing',totalUserWithListing.length)
+        totalseller.push(user.email)
+        console.log(totalseller.length)
         // Send email notification
         const subject = "Come Online Buyers are wating ";
         const send_to = user.email;
@@ -307,35 +307,35 @@ async function userWithListings() {
         const name = user.firstname;
         const link = `${process.env.FRONTEND_USER}/profilepage`;
 
-        try {
-          await sendEmail(
-            subject,
-            send_to,
-            send_from,
-            reply_to,
-            null,
-            template,
-            name,
-            link,
-            null,
-            null,
-            null,
-            null,
-            null,
-            null,
-            null,
-            null,
-            null,
-            null
-          );
+        // try {
+        //   await sendEmail(
+        //     subject,
+        //     send_to,
+        //     send_from,
+        //     reply_to,
+        //     null,
+        //     template,
+        //     name,
+        //     link,
+        //     null,
+        //     null,
+        //     null,
+        //     null,
+        //     null,
+        //     null,
+        //     null,
+        //     null,
+        //     null,
+        //     null
+        //   );
 
-          console.log(`📧 Listing notification sent to: ${send_to}`);
-        } catch (error) {
-          console.error(
-            `❌ Failed to send listing notification to ${send_to}:`,
-            error.message
-          );
-        }
+        //   console.log(`📧 Listing notification sent to: ${send_to}`);
+        // } catch (error) {
+        //   console.error(
+        //     `❌ Failed to send listing notification to ${send_to}:`,
+        //     error.message
+        //   );
+        // }
       }
     }
   } catch (error) {
@@ -345,6 +345,9 @@ async function userWithListings() {
     );
   }
 }
+
+
+
 
 
 
@@ -461,7 +464,6 @@ const postRandomTweet = async () => {
   // Add the posted tweet to the postedTweets array
   postedTweets.push(tweet);
 };
-
 
 
 
