@@ -203,7 +203,7 @@ router.post(
 router.get(
   "/api/users/paymentverification",
   
- protect, Paymentverification
+  protect,Paymentverification
 );
 
 //-------------------ChattRoute-------------------------------------------------//
