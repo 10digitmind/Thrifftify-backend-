@@ -70,12 +70,12 @@ const verifiedOnly = asyncHandler(async (req, res, next) => {
   }
 });
 
+
 module.exports = {
   protect,
   adminOnly,
   verifiedOnly,
   author,
-
   
  
 };
