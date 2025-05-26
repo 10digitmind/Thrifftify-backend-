@@ -51,9 +51,17 @@ const Chatroom = require('../model/chatRoomSchema');
 //-------------utilities functions
 // genrate toeken function
 const generateToken = (id) => {
-  return jwt.sign({ id }, process.env.JWT_SECRET, { expiresIn: "1d" });
+  const sessionId = crypto.randomBytes(16).toString("hex"); // unique per session
+  return jwt.sign(
+    {
+      id,
+      sessionId,
+      iat: Date.now() // issued at
+    },
+    process.env.JWT_SECRET,
+    { expiresIn: "5h" }
+  );
 };
-
 //hash token  function
 const hashToken = (token) => {
   return crypto.createHash("sha256").update(token.toString()).digest("hex");
@@ -1404,8 +1412,6 @@ const initialisePayment = asyncHandler(async (req, res) => {
 const Paymentverification = asyncHandler(async (req, res) => {
   const { reference } = req.query;
 
-  console.log("Incoming reference:", reference);
-
   if (!reference) {
     return res.status(400).send("Reference is required");
   }
@@ -1574,6 +1580,7 @@ const Paymentverification = asyncHandler(async (req, res) => {
         );
 
       return res.status(200).json({
+        status: "success",
         message: "Payment verified successfully",
         data,
       });
