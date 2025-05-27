@@ -1426,8 +1426,6 @@ const Paymentverification = asyncHandler(async (req, res) => {
         },
       }
     );
-    console.log('key:',process.env.PAYSTACK_SECERET_KEY)
-    console.log("Full response from Paystack:", response.data);
 
     const { status, data } = response.data;
 
@@ -1476,11 +1474,17 @@ const Paymentverification = asyncHandler(async (req, res) => {
       if (!sellerdetails) {
         return res.status(400).json("Can't find seller");
       }
-      const itemPrice = Number(metadata.itemPrice) - 60
+      const itemPrice = Number(metadata.itemPrice) 
+
       if (isNaN(itemPrice)) {
         return res.status(400).json({ message: "Invalid item price provided" });
       }
-      sellerdetails.pendingSoldAmount +=itemPrice
+
+      const companyFee = itemPrice * 0.10;
+const transactionFee = 120;
+const sellerEarnings = itemPrice - companyFee - transactionFee;
+
+      sellerdetails.pendingSoldAmount +=sellerEarnings
       await sellerdetails.save();
 
          // Save order
@@ -1517,6 +1521,7 @@ const Paymentverification = asyncHandler(async (req, res) => {
             }
           }
         }    
+      
         const template = "buyerpurchased.";
         const reply_to = "noreply@thritify.com";
         const send_from = process.env.EMAIL_USER;
@@ -1529,6 +1534,7 @@ const Paymentverification = asyncHandler(async (req, res) => {
         const deliverydate = item.deliverydate;
         const buyeraddress = metadata.buyerAddress;
         const cc = "purchased@thriftiffy.com";
+        
 
         await sendEmail(
           subject,
@@ -1557,7 +1563,9 @@ const Paymentverification = asyncHandler(async (req, res) => {
         const phonenumber = metadata.phoneNumber;
         const deliveryformurl = `${process.env.FRONTEND_USER}/deliveryform/${newOrder._id}/${itemname}`;
         const sellercc = "purchased@thriftiffy.com";
-       
+        const platformCommission = itemprice * 0.10;
+        const paystackFee = 120;
+        const finalPayment = itemprice - platformCommission - paystackFee;
 
         await sendEmail(
           sellerSubject,
@@ -1569,7 +1577,7 @@ const Paymentverification = asyncHandler(async (req, res) => {
           null,
           null,
           buyername,
-          itemprice,
+          finalPayment,
           sellername,
           itemname,
           buyeraddress,
@@ -2781,7 +2789,7 @@ const checkoutItem = asyncHandler(async (req, res) => {
   // Send email notification to admin (or seller, depending on your flow)
    
     const subject = "someone currently checking your item - Thriftify";
-    const send_to = 'olubodekehinde2019@gmail.com';  // or item's seller email if you prefer
+    const send_to = item.sellerdetails[0].email;  // or item's seller email if you prefer
     const send_from = process.env.EMAIL_USER;
     const reply_to = "noreply@thriftify.com";
     const template = "checkoutalert.";  // a template key if you're using one

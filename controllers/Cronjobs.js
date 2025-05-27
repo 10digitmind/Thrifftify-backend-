@@ -282,22 +282,24 @@ async function deleteUnverifiedAccounts() {
 }
 
 async function userWithListings() {
+
   try {
     console.log("🔄 Checking users with more than one listing...");
 
     // Find all verified users
     const users = await User.find({ isVerified: true });
-
+console.log('alluser',users.length)
     let totalseller = []
     for (const user of users) {
       // Find goods belonging to the user
       const userGoods = await Good.find({ userId: user._id });
+    
      
       // Check if the user has more than one listed item
       if (userGoods.length >= 1) {
         console.log(`⚠️ User ${user.email} has more than one listing.`);
         totalseller.push(user.email)
-        console.log(totalseller.length)
+        
         // Send email notification
         const subject = "Come Online Buyers are wating ";
         const send_to = user.email;
@@ -345,7 +347,6 @@ async function userWithListings() {
     );
   }
 }
-
 
 
 
