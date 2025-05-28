@@ -3097,8 +3097,9 @@ const spin = async (req, res) => {
 
     if (prize.includes('₦') && prize !== '₦0' && prize !== '₦1,000 Airtime') {
       const amount = parseInt(prize.replace(/[^\d]/g, ''), 10);
-      
+
       const randomNumber = Math.floor(1000 + Math.random() * 9000); // Generates a 4-digit random number
+
         const couponCode = `SPINWIN${randomNumber}`;
 
       await Coupon.create({
