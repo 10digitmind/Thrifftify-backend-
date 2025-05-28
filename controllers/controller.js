@@ -247,6 +247,13 @@ const correctPassword = await bcrypt.compare(password, user.password);
 
 
 
+  const today = new Date().toISOString().split('T')[0];
+
+  if (user.lastLoginDate !== today) {
+    user.spinPoint += 20;
+    user.lastLoginDate = today;
+    await user.save();
+  }
 
     // Generate token
     const token = generateToken(user._id);

@@ -147,6 +147,7 @@ const Userschmema = mongoose.Schema(
     lastSpinDate: { type: String }, // Store as 'YYYY-MM-DD'
     spinPrize: { type: String }, 
     spinPoint: { type: Number, default:40 }, 
+    lastLoginDate: { type: String }, 
    
   },
 
