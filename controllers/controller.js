@@ -3119,6 +3119,8 @@ const spin = async (req, res) => {
     user.spinPoint -= 20;
     await user.save();
 
+    console.log(couponCode)
+
     return res.status(200).json({ prize, couponCode });
   } catch (error) {
     console.error('Spin error:', error);
