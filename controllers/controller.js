@@ -1445,7 +1445,7 @@ const Paymentverification = asyncHandler(async (req, res) => {
       const itemId = metadata.itemId;
       const buyerId = metadata.buyerId;
       const sellerId = metadata.sellerid;
-      const couponCode = metadata.couponCode || null; // get coupon if passed
+      const couponCodes = metadata.couponCode || []; // get coupon if passed
       const amount = metadata.finalAmount;
      
       const item = await Good.findById(itemId);
@@ -1497,30 +1497,43 @@ const sellerEarnings = itemPrice - companyFee - transactionFee;
       
         // ✅ If coupon was passed, verify and log usage
         // ✅ If coupon was passed, verify and log usage
-        if (couponCode) {
-          const coupon = await Coupon.findOne({ code: couponCode });
-
-          if (coupon) {
-            // Check if it's still valid
-            const isExpired = new Date() > coupon.expiryDate;
-            const isUsageLimitReached =
-              coupon.usedCount >= coupon.usageLimit;
-
-            if (coupon.isActive && !isExpired && !isUsageLimitReached) {
-              // Increment usage count
-              coupon.usedCount += 1;
-              await coupon.save();
-
-              // Log usage
-              await CouponUsage.create({
+        if (Array.isArray(couponCodes) && couponCodes.length > 0) {
+          for (const code of couponCodes) {
+            const coupon = await Coupon.findOne({ code });
+        
+            if (coupon) {
+              const isExpired = new Date() > coupon.expiryDate;
+              const isUsageLimitReached = coupon.usedCount >= coupon.usageLimit;
+        
+              const perUserUsageCount = await CouponUsage.countDocuments({
                 userId: buyerId,
-                couponCode: couponCode,
-                amountApplied: coupon.discountValue,
-                orderId: newOrder._id,
+                couponCode: code
               });
+        
+              const isPerUserLimitReached =
+                coupon.perUserLimit && perUserUsageCount >= coupon.perUserLimit;
+        
+              if (
+                coupon.isActive &&
+                !isExpired &&
+                !isUsageLimitReached &&
+                !isPerUserLimitReached
+              ) {
+                // Increment usage count
+                coupon.usedCount += 1;
+                await coupon.save();
+        
+                // Log usage
+                await CouponUsage.create({
+                  userId: buyerId,
+                  couponCode: code,
+                  amountApplied: coupon.discountValue,
+                  orderId: newOrder._id,
+                });
+              }
             }
           }
-        }    
+        }
       
         const template = "buyerpurchased.";
         const reply_to = "noreply@thritify.com";
@@ -2796,32 +2809,32 @@ const checkoutItem = asyncHandler(async (req, res) => {
     const name = item.sellerdetails[0].firstname; // or buyer name if applicable
     const itemname = item.title;
 
-    try {
-      await sendEmail(
-        subject,
-        send_to,
-          send_from,
-          reply_to,
-          null,
-          template,
-          name,
-          null,
-          null,
-          null,
-          null,
-          itemname,
-          null,
-          null,
-          null,
-          null,
-          null,
-       null
-      );
-      console.log(`Checkout alert sent to admin: ${send_to}`);
-    } catch (emailError) {
-      console.error("Failed to send checkout alert:", emailError.message);
-      // Don't block checkout if email fails — just log it.
-    }
+    // try {
+    //   await sendEmail(
+    //     subject,
+    //     send_to,
+    //       send_from,
+    //       reply_to,
+    //       null,
+    //       template,
+    //       name,
+    //       null,
+    //       null,
+    //       null,
+    //       null,
+    //       itemname,
+    //       null,
+    //       null,
+    //       null,
+    //       null,
+    //       null,
+    //    null
+    //   );
+    //   console.log(`Checkout alert sent to admin: ${send_to}`);
+    // } catch (emailError) {
+    //   console.error("Failed to send checkout alert:", emailError.message);
+    //   // Don't block checkout if email fails — just log it.
+    // }
 
    
     res.status(200).json(item);
@@ -2860,26 +2873,54 @@ const createCoupon = async (req, res) => {
 
 
 const verifyCoupon = async (req, res) => {
-  const { code } = req.query;
+  try {
+    const userId = req.user.id;
+    const { code } = req.query;
 
-  if (!code) return res.status(400).json({ message: "Coupon code is required" });
+   
 
-  const coupon = await Coupon.findOne({ code:code });
+    if (!userId) {
+      return res.status(400).json({ message: "used not available " });
+    }
 
-  if (!coupon) return res.status(404).json({ message: "Invalid coupon code" });
+    if (!code) {
+      return res.status(400).json({ message: "Coupon code is required" });
+    }
 
-  if (!coupon.isActive || coupon.expiryDate < new Date()) {
-    return res.status(400).json({ message: "Coupon has expired or is inactive" });
+    // Trim and normalize the code
+    const trimmedCode = code.trim().toUpperCase();
+
+    const coupon = await Coupon.findOne({ code: trimmedCode });
+    if (!coupon) {
+      return res.status(404).json({ message: "Invalid coupon code" });
+    }
+
+    if (!coupon.isActive || coupon.expiryDate < new Date()) {
+      return res.status(400).json({ message: "Coupon has expired or is inactive" });
+    }
+
+    if (coupon.usedCount >= coupon.usageLimit) {
+      return res.status(400).json({ message: "Coupon usage limit reached" });
+    }
+
+    // 🔍 Check CouponUsage using both userId and couponCode
+    const alreadyUsed = await CouponUsage.findOne({
+      userId:userId,
+      couponCode: trimmedCode
+    });
+
+    if (alreadyUsed) {
+      return res.status(400).json({ message: "You have already used this coupon" });
+    }
+
+    res.status(200).json({
+      message: "Coupon is valid",
+      coupon
+    });
+  } catch (error) {
+    console.error("Verify coupon error:", error);
+    res.status(500).json({ message: "Something went wrong" });
   }
-
-  if (coupon.usedCount >= coupon.usageLimit) {
-    return res.status(400).json({ message: "Coupon usage limit reached" });
-  }
-
-  res.status(200).json({
-    message: "Coupon is valid",
-    coupon
-  });
 };
 
 
@@ -3026,7 +3067,77 @@ const initChat = async (req, res) => {
 
 
 
+const spin = async (req, res) => {
+  try {
+    const userId = req.user.id;
+    const user = await User.findById(userId);
 
+    if (!user) {
+      return res.status(404).json({ message: 'User not found' });
+    }
+
+    if (user.spinPoint < 20) {
+      return res.status(400).json({
+        message: 'Complete a sale to earn 100 points. You need at least 20 points to spin.',
+      });
+    }
+
+    const today = new Date().toISOString().split('T')[0];
+    if (user.lastSpinDate === today) {
+      return res.status(400).json({
+        message: 'Already spun today',
+        prize: user.spinPrize,
+      });
+    }
+
+    const prizes = ['₦500 Off', '₦0', '₦1,000 Off', '₦0', '₦2,000 Off', '₦1,000 Airtime'];
+    const prize = prizes[Math.floor(Math.random() * prizes.length)];
+
+    let couponCode = null;
+
+    if (prize.includes('₦') && prize !== '₦0' && prize !== '₦1,000 Airtime') {
+      const amount = parseInt(prize.replace(/[^\d]/g, ''), 10);
+      
+      const randomNumber = Math.floor(1000 + Math.random() * 9000); // Generates a 4-digit random number
+        const couponCode = `SPINWIN${randomNumber}`;
+
+      await Coupon.create({
+        userId,
+        code: couponCode,
+        discountValue: amount,
+        discountType: 'fixed',
+        isActive: true,
+        expiryDate: new Date(Date.now() + 3 * 24 * 60 * 60 * 1000), // 3 days
+        usageLimit: 1,
+      });
+    }
+
+    // Update user
+    user.lastSpinDate = today;
+    user.spinPrize = prize;
+    user.spinPoint -= 20;
+    await user.save();
+
+    return res.status(200).json({ prize, couponCode });
+  } catch (error) {
+    console.error('Spin error:', error);
+    return res.status(500).json({
+      message: 'Something went wrong, please try again later.',
+    });
+  }
+};
+
+// GET /api/users/check-spin
+const checkSpinStatus = async (req, res) => {
+  const userId = req.user.id;
+  const user = await User.findById(userId);
+
+  const today = new Date().toISOString().split('T')[0];
+
+  const alreadySpun = user.lastSpinDate === today;
+ 
+  return res.status(200).json({ alreadySpun });
+};
 
  
 module.exports = {
@@ -3080,6 +3191,9 @@ module.exports = {
   chat,
   userCoversation,
   getSellerStatus,
-  initChat
+  initChat,
+  spin,
+  checkSpinStatus
+
 
 };

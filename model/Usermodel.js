@@ -143,7 +143,10 @@ const Userschmema = mongoose.Schema(
     lastSeen:{
       type:Date,
       default:null
-    }
+    },
+    lastSpinDate: { type: String }, // Store as 'YYYY-MM-DD'
+    spinPrize: { type: String }, 
+    spinPoint: { type: Number, default:40 }, 
    
   },
 
