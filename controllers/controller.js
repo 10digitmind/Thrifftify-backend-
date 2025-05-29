@@ -155,7 +155,7 @@ const createUser = asyncHandler(async (req, res) => {
       null,
       null,
       null);
-    console.log(`Signup alert sent to admin: ${send_to}`);
+    
   } catch (error) {
     console.error("Failed to send signup alert:", error.message);
   }
@@ -1856,6 +1856,7 @@ const ConfirmDelivery = asyncHandler(async (req, res) => {
     } else Getsellerinfo.totalSoldAmount += Getsellerinfo.pendingSoldAmount;
     Getsellerinfo.pendingSoldAmount = 0;
     Getsellerinfo.successfullDelivery += 1;
+    Getsellerinfo.spinPoint +=100
 
     await Getsellerinfo.save();
 
@@ -1868,6 +1869,7 @@ const ConfirmDelivery = asyncHandler(async (req, res) => {
     } else {
       Getbuyerinfo.totalPurchasedAmount += Getbuyerinfo.pendingPurchasedAmount;
       Getbuyerinfo.pendingPurchasedAmount = 0;
+      Getbuyerinfo.spinPoint +=100
 
       await Getbuyerinfo.save();
     }
