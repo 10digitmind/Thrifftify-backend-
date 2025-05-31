@@ -5,6 +5,7 @@ const cron = require("node-cron");
 const User = require("../model/Usermodel.js"); // Adjust path to your User model
 const { sendEmail } = require("../sendemail/sendemail.js"); // Adjust path to your sendEmail function
 const Good = require("../model/Goodmodel.js");
+const Delivery= require("../model/deliverySchema.js");
 const Review = require("../model/Reviews.js");
 
 async function sendVerificationReminders() {
@@ -281,72 +282,80 @@ async function deleteUnverifiedAccounts() {
   }
 }
 
-async function userWithListings() {
 
+const allStates = [
+  "Abia", "Adamawa", "Akwa Ibom", "Anambra", "Bauchi", "Bayelsa", "Benue",
+  "Borno", "Cross River", "Delta", "Ebonyi", "Edo", "Ekiti", "Enugu", "FCT",
+  "Gombe", "Imo", "Jigawa", "Kaduna", "Kano", "Katsina", "Kebbi", "Kogi",
+  "Kwara", "Lagos", "Nasarawa", "Niger", "Ogun", "Ondo", "Osun", "Oyo",
+  "Plateau", "Rivers", "Sokoto", "Taraba", "Yobe", "Zamfara"
+];
+
+async function userWithListings() {
   try {
     console.log("🔄 Checking users with more than one listing...");
 
-    // Find all verified users
     const users = await User.find({ isVerified: true });
-console.log('alluser',users.length)
-    let totalseller = []
+    console.log("All verified users:", users.length);
+
     for (const user of users) {
-      // Find goods belonging to the user
       const userGoods = await Good.find({ userId: user._id });
-    
-     
-      // Check if the user has more than one listed item
+
       if (userGoods.length >= 1) {
-        console.log(`⚠️ User ${user.email} has more than one listing.`);
-        totalseller.push(user.email)
-        
-        // Send email notification
-        const subject = "Come Online Buyers are wating ";
-        const send_to = user.email;
-        const send_from = process.env.EMAIL_USER;
-        const reply_to = "noreply@thriftify.com";
-        const template = "userwithlistings.";
-        const name = user.firstname;
-        const link = `${process.env.FRONTEND_USER}/profilepage`;
+        console.log(`⚠️ User ${user._id} has ${userGoods.length} listing(s).`);
 
-        // try {
-        //   await sendEmail(
-        //     subject,
-        //     send_to,
-        //     send_from,
-        //     reply_to,
-        //     null,
-        //     template,
-        //     name,
-        //     link,
-        //     null,
-        //     null,
-        //     null,
-        //     null,
-        //     null,
-        //     null,
-        //     null,
-        //     null,
-        //     null,
-        //     null
-        //   );
+        // Try to get first Lagos & Ibadan delivery fee
+        let deliveryToLagos = null;
+        let deliveryToIbadan = null;
 
-        //   console.log(`📧 Listing notification sent to: ${send_to}`);
-        // } catch (error) {
-        //   console.error(
-        //     `❌ Failed to send listing notification to ${send_to}:`,
-        //     error.message
-        //   );
-        // }
+        for (const good of userGoods) {
+          if (deliveryToLagos === null && good.deliveryfeetolagos != null) {
+            deliveryToLagos = good.deliveryfeetolagos;
+          }
+          if (deliveryToIbadan === null && good.deliveryfeetoibadan != null) {
+            deliveryToIbadan = good.deliveryfeetoibadan;
+          }
+
+          if (deliveryToLagos !== null && deliveryToIbadan !== null) break;
+        }
+
+        // Set default to 0 if no fee was found
+        deliveryToLagos = deliveryToLagos || 0;
+        deliveryToIbadan = deliveryToIbadan || 0;
+
+        const deliveryFees = {};
+        allStates.forEach(state => {
+          if (state === "Lagos") {
+            deliveryFees[state] = deliveryToLagos;
+          } else if (state === "Oyo") {
+            deliveryFees[state] = deliveryToIbadan;
+          } else {
+            deliveryFees[state] = 0;
+          }
+        });
+
+        // Avoid duplicate delivery entries
+        const exists = await Delivery.findOne({ sellerId: user._id });
+        if (!exists) {
+          await Delivery.create({
+            sellerId: user._id,
+            fees: deliveryFees
+          });
+          console.log(`✅ Delivery config created for ${user.email}`);
+        } else {
+          console.log(`🟡 Delivery config already exists for ${user.email}`);
+        }
+
+        // Optional: send email...
       }
     }
   } catch (error) {
-    console.error(
-      "❌ Error running first listing notification:",
-      error.message
-    );
+    console.error("❌ Error updating delivery fees:", error.message);
   }
 }
+
+
+
 
 
 

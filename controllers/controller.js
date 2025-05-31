@@ -15,6 +15,7 @@ const Good = require("../model/Goodmodel.js");
 const Coupon = require('../model/CouponModel.js')
 const CouponUsage =require("../model/Couponuseagemodel.js");
 const DeletedUser = require('../model/DeletedUser.js')
+const Delivery = require('../model/deliverySchema.js');
 const Chat = require('../model/chatRoomSchema.js')
 const Review = require("../model/Reviews.js");
 const crypto = require('crypto')
@@ -3152,6 +3153,63 @@ const checkSpinStatus = async (req, res) => {
   return res.status(200).json({ alreadySpun });
 };
 
+
+ // import your model
+
+const createDeliveryFee = async (req, res) => {
+  try {
+    const sellerId = req.user._id; // or from req.body if not auth
+    const { fees } = req.body; // expect fees as an object, e.g. { Lagos: 500, Abuja: 700 }
+
+    if (!fees || typeof fees !== 'object' || Object.keys(fees).length === 0) {
+      return res.status(400).json({ message: 'Please provide fees object with state-fee pairs' });
+    }
+
+    // Check if delivery already exists for this seller
+    let delivery = await Delivery.findOne({ sellerId });
+
+    if (delivery) {
+      // Update fees map with new states/fees, merging existing ones
+      for (const [state, fee] of Object.entries(fees)) {
+        delivery.fees.set(state, fee);
+      }
+      await delivery.save();
+    } else {
+      // Create new delivery document
+      delivery = new Delivery({
+        sellerId,
+        fees
+      });
+      await delivery.save();
+    }
+
+    return res.status(200).json({ message: 'Delivery fees saved successfully', delivery });
+  } catch (error) {
+    console.error('CreateDelivery error:', error);
+    return res.status(500).json({ message: 'Server error' });
+  }
+};
+
+const getDeliveryFee = async (req, res) => {
+  try {
+    const { sellerId } = req.params;
+
+    const delivery = await Delivery.findOne({ sellerId });
+
+    if (!delivery) {
+      return res.status(404).json({ message: "Delivery fee not found" });
+    }
+
+    return res.status(200).json(delivery);
+  } catch (error) {
+    console.error("Error in getDeliveryFee:", error);
+    return res.status(500).json({ message: "Server error" });
+  }
+};
+
+
+
+
  
 module.exports = {
   createUser,
@@ -3206,7 +3264,9 @@ module.exports = {
   getSellerStatus,
   initChat,
   spin,
-  checkSpinStatus
+  checkSpinStatus,
+  createDeliveryFee,
+  getDeliveryFee
 
 
 };

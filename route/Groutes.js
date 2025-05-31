@@ -81,7 +81,9 @@ const {
   getSellerStatus,
   initChat,
   spin,
-  checkSpinStatus
+  checkSpinStatus,
+  createDeliveryFee,
+  getDeliveryFee
 
 } = require("../controllers/controller");
 
@@ -270,6 +272,9 @@ router.post("/api/users/initchat", protect, initChat);
 
 router.post("/api/users/spin", protect, spin);
 router.get("/api/users/check-spin", protect, checkSpinStatus);
+router.post("/api/users/createdeliveryfee", protect, createDeliveryFee);
+router.get("/api/users/getdeliveryfees/:sellerId", protect, getDeliveryFee);
+
 
 
 
