@@ -7,7 +7,8 @@ const { sendEmail } = require("../sendemail/sendemail.js"); // Adjust path to yo
 const Good = require("../model/Goodmodel.js");
 const Delivery= require("../model/deliverySchema.js");
 const Review = require("../model/Reviews.js");
-
+const { Types } = require('mongoose');
+const ObjectId = Types.ObjectId;
 async function sendVerificationReminders() {
   try {
     console.log("🔄 Cron Job is running...");
@@ -283,78 +284,139 @@ async function deleteUnverifiedAccounts() {
 }
 
 
-const allStates = [
-  "Abia", "Adamawa", "Akwa Ibom", "Anambra", "Bauchi", "Bayelsa", "Benue",
-  "Borno", "Cross River", "Delta", "Ebonyi", "Edo", "Ekiti", "Enugu", "FCT",
-  "Gombe", "Imo", "Jigawa", "Kaduna", "Kano", "Katsina", "Kebbi", "Kogi",
-  "Kwara", "Lagos", "Nasarawa", "Niger", "Ogun", "Ondo", "Osun", "Oyo",
-  "Plateau", "Rivers", "Sokoto", "Taraba", "Yobe", "Zamfara"
-];
+
 
 async function userWithListings() {
   try {
-    console.log("🔄 Checking users with more than one listing...");
+    console.log("🔄 Cron Job is running...");
 
-    const users = await User.find({ isVerified: true });
-    console.log("All verified users:", users.length);
+    // Find all verified users
+    const verifiedUsers = await User.find({ idVerified: true });
+  // Ensure correct field name
+  let userWithoutDeliveryFee=[]
+    if (verifiedUsers.length === 0) {
+      console.log("✅ No verified users found. Skipping...");
+      return;
+    }
 
-    for (const user of users) {
-      const userGoods = await Good.find({ userId: user._id });
 
-      if (userGoods.length >= 1) {
-        console.log(`⚠️ User ${user._id} has ${userGoods.length} listing(s).`);
+    for (const user of verifiedUsers) {
+      // Find goods belonging to the user
+    
+      const usergoods = await Good.find({ userId: user._id });
+      const delivery = await Delivery.find({ userId: new ObjectId(user._id) });
 
-        // Try to get first Lagos & Ibadan delivery fee
-        let deliveryToLagos = null;
-        let deliveryToIbadan = null;
+      // Check if the user has less than 1 listed item
+      if (usergoods>=1 ) {
 
-        for (const good of userGoods) {
-          if (deliveryToLagos === null && good.deliveryfeetolagos != null) {
-            deliveryToLagos = good.deliveryfeetolagos;
-          }
-          if (deliveryToIbadan === null && good.deliveryfeetoibadan != null) {
-            deliveryToIbadan = good.deliveryfeetoibadan;
-          }
+        userWithoutDeliveryFee.push(user)
+        console.log(`❌ ${user.firstname} has listings but no delivery fees.`)
 
-          if (deliveryToLagos !== null && deliveryToIbadan !== null) break;
-        }
+        // Send email notification
+        // const subject = "Happy New month - Delivery fee update for all state ";
+        // const send_to = user.email;
+        // const send_from = process.env.EMAIL_USER;
+        // const reply_to = "noreply@thritify.com";
+        // const template = "userwithlistings."; // Removed period
+        // const name = user.firstname;
+        // Corrected variable
 
-        // Set default to 0 if no fee was found
-        deliveryToLagos = deliveryToLagos || 0;
-        deliveryToIbadan = deliveryToIbadan || 0;
+        // try {
+        //   await sendEmail(
+        //     subject,
+        //     send_to,
+        //     send_from,
+        //     reply_to,
+        //     null,
+        //     template,
+        //     name,
+        //     null,
+        //     null,
+        //     null,
+        //     null,
+        //     null,
+        //     null,
+        //     null,
+        //     null,
+        //     null,
+        //     null,
+        //     null
+        //   );
 
-        const deliveryFees = {};
-        allStates.forEach(state => {
-          if (state === "Lagos") {
-            deliveryFees[state] = deliveryToLagos;
-          } else if (state === "Oyo") {
-            deliveryFees[state] = deliveryToIbadan;
-          } else {
-            deliveryFees[state] = 0;
-          }
-        });
-
-        // Avoid duplicate delivery entries
-        const exists = await Delivery.findOne({ sellerId: user._id });
-        if (!exists) {
-          await Delivery.create({
-            sellerId: user._id,
-            fees: deliveryFees
-          });
-          console.log(`✅ Delivery config created for ${user.email}`);
-        } else {
-          console.log(`🟡 Delivery config already exists for ${user.email}`);
-        }
-
-        // Optional: send email...
+        //   console.log(`📧 Listing reminder sent to: ${send_to}`);
+        // } catch (error) {
+        //   console.error(
+        //     `❌ Failed to send listing reminder to ${send_to}:`,
+        //     error.message
+        //   );
+        // }
       }
     }
+
+    console.log('user wihtout fee',userWithoutDeliveryFee.length)
+
+    console.log("✅ Cron job completed.");
   } catch (error) {
-    console.error("❌ Error updating delivery fees:", error.message);
+    console.error("❌ Error running cron job:", error.message);
   }
 }
 
 
+// userWithListings()
+
+const allStates = [
+  "Abia", "Adamawa", "Akwa Ibom", "Anambra", "Bauchi", "Bayelsa", "Benue", "Borno",
+  "Cross River", "Delta", "Ebonyi", "Edo", "Ekiti", "Enugu", "Gombe", "Imo",
+  "Jigawa", "Kaduna", "Kano", "Katsina", "Kebbi", "Kogi", "Kwara", "Lagos",
+  "Nasarawa", "Niger", "Ogun", "Ondo", "Osun", "Oyo", "Plateau", "Rivers",
+  "Sokoto", "Taraba", "Yobe", "Zamfara", "FCT"
+];
+
+// async function recreateDeliveryFees() {
+//   try {
+//     const goods = await Good.find({});
+
+//     const userIdsWithGoods = [...new Set(goods.map(good => good.userId.toString()))];
+
+//     console.log("Total unique users with goods:", userIdsWithGoods.length);
+
+//     let createdCount = 0; // ✅ Declare the counter
+
+//     for (const userId of userIdsWithGoods) {
+//       const existing = await Delivery.findOne({ userId });
+
+//       if (existing) {
+//         console.log(`✅ Delivery fee already exists for user ${userId}, skipping...`);
+//         continue;
+//       }
+
+//       const good = await Good.findOne({ userId });
+
+//       const lagosFee = good?.deliveryfeetolagos || 0;
+//       const ibadanFee = good?.deliveryfeetoibadan || 0;
+
+//       const fees = {
+//         Lagos: lagosFee,
+//         Oyo: ibadanFee,
+//         Abia: 0, Adamawa: 0, AkwaIbom: 0, Anambra: 0, Bauchi: 0, Bayelsa: 0, Benue: 0,
+//         Borno: 0, CrossRiver: 0, Delta: 0, Ebonyi: 0, Edo: 0, Ekiti: 0, Enugu: 0,
+//         Gombe: 0, Imo: 0, Jigawa: 0, Kaduna: 0, Kano: 0, Katsina: 0, Kebbi: 0,
+//         Kogi: 0, Kwara: 0, Nasarawa: 0, Niger: 0, Ogun: 0, Ondo: 0, Osun: 0,
+//         Plateau: 0, Rivers: 0, Sokoto: 0, Taraba: 0, Yobe: 0, Zamfara: 0,
+//         FCT: 0,
+//       };
+
+//       await Delivery.create({ sellerId:userId, fees });
+
+//       console.log(`🚚 Delivery fee created for user: ${userId}`);
+//       createdCount++; // ✅ Increase count
+//     }
+
+//     console.log(`🎉 Completed. Delivery fees created for ${createdCount} users.`);
+//   } catch (error) {
+//     console.error("❌ Error:", error.message);
+//   }
+// }
 
 
 
