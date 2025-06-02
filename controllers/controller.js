@@ -1550,7 +1550,7 @@ const sellerEarnings = itemPrice - companyFee - transactionFee;
         const itemprice = metadata.itemPrice;
         const deliverydate = item.deliverydate;
         const buyeraddress = metadata.buyerAddress;
-        const cc = "thriftiffyad@gmail.com";
+        const cc = process.env.ADMIN_EMAIL;
         
 
         await sendEmail(
@@ -2193,7 +2193,7 @@ const requestWithdrawal = asyncHandler(async (req, res) => {
   const userEmail = user.email;
   const sentFrom = process.env.EMAIL_USER;
   const replyTo = "noreply@thriftify.com";
-  const cc = "thriftiffyad@gmail.com";
+  const cc = process.env.ADMIN_EMAIL;
   const amount = requestedAmount;
   const bankname = bankName
   const accountnumber = accountNumber
@@ -2814,34 +2814,34 @@ const checkoutItem = asyncHandler(async (req, res) => {
     const template = "checkoutalert.";  // a template key if you're using one
     const name = item.sellerdetails[0].firstname; // or buyer name if applicable
     const itemname = item.title
-    const cc = 'thriftiffyad@gmail.com'
+    const cc =process.env.ADMIN_EMAIL
 
-    // try {
-    //   await sendEmail(
-    //     subject,
-    //     send_to,
-    //       send_from,
-    //       reply_to,
-    //       cc,
-    //       template,
-    //       name,
-    //       null,
-    //       null,
-    //       null,
-    //       null,
-    //       itemname,
-    //       null,
-    //       null,
-    //       null,
-    //       null,
-    //       null,
-    //    null
-    //   );
-    //   console.log(`Checkout alert sent to admin: ${send_to}`);
-    // } catch (emailError) {
-    //   console.error("Failed to send checkout alert:", emailError.message);
-    //   // Don't block checkout if email fails — just log it.
-    // }
+    try {
+      await sendEmail(
+        subject,
+        send_to,
+          send_from,
+          reply_to,
+          cc,
+          template,
+          name,
+          null,
+          null,
+          null,
+          null,
+          itemname,
+          null,
+          null,
+          null,
+          null,
+          null,
+       null
+      );
+      console.log(`Checkout alert sent to admin: ${send_to}`);
+    } catch (emailError) {
+      console.error("Failed to send checkout alert:", emailError.message);
+      // Don't block checkout if email fails — just log it.
+    }
 
    
     res.status(200).json(item);
