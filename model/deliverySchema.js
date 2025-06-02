@@ -16,7 +16,8 @@ const deliverySchema = new mongoose.Schema({
   createdAt: {
     type: Date,
     default: Date.now
-  }
+  },
+
 });
 
 const Delivery = mongoose.model("Delivery", deliverySchema);

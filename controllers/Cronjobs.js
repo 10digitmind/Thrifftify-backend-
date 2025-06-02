@@ -436,11 +436,11 @@ async function generalNotification() {
     }
 
     for (const user of users) { 
-      const subject = "Chat with seller and buyer on thrifitify 🎉";
+      const subject = "Please update your delivery fees🎉";
       const send_to = user.email;
       const send_from = process.env.EMAIL_USER;
       const reply_to = "noreply@thrifify.com";
-      const template = "generalnotification."; // Ensure you have this template in your email system
+      const template = "userwithlistings."; // Ensure you have this template in your email system
       const name = user.firstname;
 
       try {
@@ -468,6 +468,10 @@ async function generalNotification() {
     console.error("❌ Error running email job:", error.message);
   }
 }
+
+
+
+
 
 
 

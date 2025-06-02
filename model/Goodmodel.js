@@ -39,17 +39,6 @@ const Goodschema = mongoose.Schema(
       required: true
     },
 
-    deliveryfeetoibadan: {
-      type: Number,
-      default: 0,
-      required: true
-    },
-    deliveryfeetolagos: {
-      type: Number,
-      default: 0,
-      required: true
-    },
-
     favouritecount: {
       type: Number,
       default: 0,

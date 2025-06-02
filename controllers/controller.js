@@ -1117,8 +1117,6 @@ const createGood = asyncHandler(async (req, res) => {
     size,
     colour,
     producttype,
-    deliveryfeetoibadan,
-    deliveryfeetolagos,
     images,
     deliverydate
   } = req.body;
@@ -1184,8 +1182,6 @@ const createGood = asyncHandler(async (req, res) => {
       producttype,
       userId: user._id,
       location: user.location.toString(),
-      deliveryfeetoibadan,
-      deliveryfeetolagos,
       deliverydate,
       sellerdetails: sellerDetails,
     });
@@ -1554,7 +1550,7 @@ const sellerEarnings = itemPrice - companyFee - transactionFee;
         const itemprice = metadata.itemPrice;
         const deliverydate = item.deliverydate;
         const buyeraddress = metadata.buyerAddress;
-        const cc = "purchased@thriftiffy.com";
+        const cc = "thriftiffyad@gmail.com";
         
 
         await sendEmail(
@@ -2197,7 +2193,7 @@ const requestWithdrawal = asyncHandler(async (req, res) => {
   const userEmail = user.email;
   const sentFrom = process.env.EMAIL_USER;
   const replyTo = "noreply@thriftify.com";
-  const cc = "dispatched@thriftiffy.com";
+  const cc = "thriftiffyad@gmail.com";
   const amount = requestedAmount;
   const bankname = bankName
   const accountnumber = accountNumber
