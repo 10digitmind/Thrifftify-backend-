@@ -83,7 +83,8 @@ const {
   spin,
   checkSpinStatus,
   createDeliveryFee,
-  getDeliveryFee
+  getDeliveryFee,
+  imgKitAuth
 
 } = require("../controllers/controller");
 
@@ -276,7 +277,7 @@ router.post("/api/users/createdeliveryfee", protect, createDeliveryFee);
 router.get("/api/users/getdeliveryfees/:sellerId", protect, getDeliveryFee);
 
 
-
+router.get("/api/users/imagekit-auth",imgKitAuth);
 
 
 

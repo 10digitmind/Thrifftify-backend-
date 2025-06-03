@@ -49,6 +49,8 @@ const { OAuth2Client } = require('google-auth-library');
 const { json } = require("body-parser");
 const client = new OAuth2Client('YOUR_GOOGLE_CLIENT_ID');
 const Chatroom = require('../model/chatRoomSchema');
+
+const { v4: uuidv4 } = require('uuid');
 //-------------utilities functions
 // genrate toeken function
 const generateToken = (id) => {
@@ -3097,16 +3099,35 @@ const spin = async (req, res) => {
       });
     }
 
-    const prizes = ['₦500 Off', '₦0', '₦1,000 Off', '₦0', '₦2,000 Off', '₦1,000 Airtime'];
-    const prize = prizes[Math.floor(Math.random() * prizes.length)];
+    // Weighted prize options
+    const prizeOptions = [
+      { prize: '₦0', weight: 40 },
+      { prize: '₦500 Off', weight: 20 },
+      { prize: '₦1,000 Off', weight: 15 },
+      { prize: '₦2,000 Off', weight: 10 },
+      { prize: '₦1,000 Airtime', weight: 1 }, // Very low chance
+    ];
+
+    const getWeightedPrize = (options) => {
+      const totalWeight = options.reduce((sum, p) => sum + p.weight, 0);
+      let random = Math.random() * totalWeight;
+
+      for (let option of options) {
+        if (random < option.weight) return option.prize;
+        random -= option.weight;
+      }
+
+      return '₦0'; // fallback
+    };
+
+    const prize = getWeightedPrize(prizeOptions);
 
     let couponCode = null;
 
+    // Only create coupon if prize is a discount (not ₦0 or Airtime)
     if (prize.includes('₦') && prize !== '₦0' && prize !== '₦1,000 Airtime') {
       const amount = parseInt(prize.replace(/[^\d]/g, ''), 10);
-
-      const randomNumber = Math.floor(1000 + Math.random() * 9000); // Generates a 4-digit random number
-
+      const randomNumber = Math.floor(1000 + Math.random() * 9000); // 4-digit code
       couponCode = `SPINWIN${randomNumber}`;
 
       await Coupon.create({
@@ -3120,13 +3141,11 @@ const spin = async (req, res) => {
       });
     }
 
-    // Update user
+    // Update user record
     user.lastSpinDate = today;
     user.spinPrize = prize;
     user.spinPoint -= 20;
     await user.save();
-
-    console.log(couponCode)
 
     return res.status(200).json({ prize, couponCode });
   } catch (error) {
@@ -3136,6 +3155,10 @@ const spin = async (req, res) => {
     });
   }
 };
+
+
+
+
 
 // GET /api/users/check-spin
 const checkSpinStatus = async (req, res) => {
@@ -3206,6 +3229,33 @@ const getDeliveryFee = async (req, res) => {
 
 
 
+
+
+const imgKitAuth = (req, res) => {
+  try {
+    const token = uuidv4();
+    const expire = Math.floor(Date.now() / 1000) + 2400; // Expires in 40 minutes
+    const privateAPIKey = process.env.privateAPIKey;
+
+    const signature = crypto
+      .createHmac('sha1', privateAPIKey)
+      .update(token + expire)
+      .digest('hex');
+
+    return res.status(200).json({
+      token,
+      expire,
+      signature
+    });
+  } catch (error) {
+    console.error("ImageKit auth error:", error);
+    return res.status(500).json({ message: "Server error generating ImageKit auth" });
+  }
+};
+
+
+
+
  
 module.exports = {
   createUser,
@@ -3262,7 +3312,8 @@ module.exports = {
   spin,
   checkSpinStatus,
   createDeliveryFee,
-  getDeliveryFee
+  getDeliveryFee,
+  imgKitAuth
 
 
 };

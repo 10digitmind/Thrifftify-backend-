@@ -45,6 +45,7 @@
     "tesseract.js": "^5.1.0",
     "twitter-api-v2": "^1.22.0",
     "ua-parser-js": "^1.0.37",
+    "uuid": "^11.1.0",
     "ws": "^8.17.1"
   }
 }
