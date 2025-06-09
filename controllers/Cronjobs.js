@@ -429,7 +429,7 @@ async function generalNotification() {
 
     // Fetch users who have verified their email
     const users = await User.find({ isVerified: true });; // Replace with your actual DB query
-
+console.log(users.length)
     if(users===0){
       console.log('no users')
       return;
@@ -443,25 +443,25 @@ async function generalNotification() {
       const template = "userwithlistings."; // Ensure you have this template in your email system
       const name = user.firstname;
 
-      try {
-        await sendEmail(
-          subject,
-          send_to,
-          send_from,
-          reply_to,
-          null,
-          template,
-          name
-        );
+      // try {
+      //   await sendEmail(
+      //     subject,
+      //     send_to,
+      //     send_from,
+      //     reply_to,
+      //     null,
+      //     template,
+      //     name
+      //   );
 
-        console.log(`📧 Eid message sent to: ${send_to}`);
-        console.log(send_to.length)
-      } catch (error) {
-        console.error(
-          `❌ Failed to send Eid message to ${send_to}:`,
-          error.message
-        );
-      }
+      //   console.log(`📧 Eid message sent to: ${send_to}`);
+      //   console.log(send_to.length)
+      // } catch (error) {
+      //   console.error(
+      //     `❌ Failed to send Eid message to ${send_to}:`,
+      //     error.message
+      //   );
+      // }
     }
 
   } catch (error) {
