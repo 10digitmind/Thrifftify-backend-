@@ -84,7 +84,8 @@ const {
   checkSpinStatus,
   createDeliveryFee,
   getDeliveryFee,
-  imgKitAuth
+  imgKitAuth,
+  collectBuyerInterestInfo
 
 } = require("../controllers/controller");
 
@@ -276,6 +277,7 @@ router.get("/api/users/check-spin", protect, checkSpinStatus);
 router.post("/api/users/createdeliveryfee", protect, createDeliveryFee);
 router.get("/api/users/getdeliveryfees/:sellerId", protect, getDeliveryFee);
 
+router.post("/api/users/collectbuyerinfo", collectBuyerInterestInfo);
 
 router.get("/api/users/imagekit-auth",imgKitAuth);
 

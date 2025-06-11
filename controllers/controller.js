@@ -16,6 +16,7 @@ const Coupon = require('../model/CouponModel.js')
 const CouponUsage =require("../model/Couponuseagemodel.js");
 const DeletedUser = require('../model/DeletedUser.js')
 const Delivery = require('../model/deliverySchema.js');
+const BuyerInterest = require('../model/BuyerInterets.js')
 const Chat = require('../model/chatRoomSchema.js')
 const Review = require("../model/Reviews.js");
 const crypto = require('crypto')
@@ -3204,6 +3205,35 @@ const imgKitAuth = (req, res) => {
 };
 
 
+const collectBuyerInterestInfo = async (req, res) => {
+  try {
+    const { buyerEmail, itemId } = req.body;
+
+    // Simple validation
+    if (!buyerEmail || !itemId) {
+      return res.status(400).json({ message: "buyerEmail and itemId are required" });
+    }
+
+    // Optional: Check if already exists
+    const existing = await BuyerInterest.findOne({ buyerEmail, itemId });
+    if (existing) {
+      return res.status(200).json({ message: "Interest already collected" });
+    }
+
+    // Save to DB
+    const interest = new BuyerInterest({
+      buyerEmail: buyerEmail,
+      itemId,
+    });
+
+    await interest.save();
+
+    return res.status(201).json({ message: "Interest collected successfully" });
+  } catch (error) {
+    console.error("Error collecting buyer interest:", error);
+    return res.status(500).json({ message: "Server error collecting buyer interest" });
+  }
+};
 
 
  
@@ -3263,7 +3293,8 @@ module.exports = {
   checkSpinStatus,
   createDeliveryFee,
   getDeliveryFee,
-  imgKitAuth
+  imgKitAuth,
+  collectBuyerInterestInfo
 
 
 };
