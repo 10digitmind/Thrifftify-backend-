@@ -133,35 +133,7 @@ const createUser = asyncHandler(async (req, res) => {
 
   const token = generateToken(user._id);
 
-  const subject = "New User Signup Alert - Thriftify";
-  const send_to = process.env.ADMIN_EMAIL; // Use env variable
-  const send_from = process.env.EMAIL_USER;
-  const reply_to = "noreply@thriftify.com";
-  const template = "signupalert.";
-  const name = user.username;
   
-  try {
-    await sendEmail( subject,
-      send_to,
-      send_from,
-      reply_to,
-      null,
-      template,
-      name,
-      null,
-      null,
-      null,
-      null,
-      null,
-      null,
-      null,
-      null,
-      null,
-      null);
-    
-  } catch (error) {
-    console.error("Failed to send signup alert:", error.message);
-  }
 
   res.status(201).json({
     id: user._id,
@@ -313,7 +285,7 @@ const sendLoginCode = asyncHandler(async (req, res) => {
   // Set email parameters
   const subject = "loginaccess code - Thritify";
   const send_to = email;
-  const send_from = process.env.EMAIL_USER;
+  const send_from = process.env.EMAIL_SENDER;
   const reply_to = "noreply@thritify.com";
   const template = 'loginwithcode.';
   const name = user.firstname;
@@ -458,7 +430,7 @@ const sendVerifyEmail = asyncHandler(async (req, res) => {
       // ✅ Send Email Verification
       const subject = "Verify Your Account - Thriftify";
       const send_to = user.email;
-      const send_from = process.env.EMAIL_USER;
+      const send_from = process.env.EMAIL_SENDER;
       const reply_to = "noreply@thriftify.com";
       const template = "verifyemail.";
       const name = user.username;
@@ -889,7 +861,7 @@ const sendAutoEmail = asyncHandler(async (req, res) => {
     res.status(404).json({ message: "user not found  " });
   }
 
-  const send_from = process.env.EMAIL_USER;
+  const send_from = process.env.EMAIL_SENDER;
   const name = user.name;
   const link = `${process.env.FRONTEND_USER}${url}`;
 
@@ -953,7 +925,7 @@ const forgotPassword = asyncHandler(async (req, res) => {
   // Set email parameters
   const subject = "Password Reset - Thritify";
   const send_to = user.email;
-  const send_from = process.env.EMAIL_USER;
+  const send_from = process.env.EMAIL_SENDER;
   const reply_to = "noreply@thritify.com";
   const template = "forgotpassword.";
   const name = user.firstname;
@@ -1068,7 +1040,7 @@ const changePassword = asyncHandler(async (req, res) => {
     // Send email notification to the user
     const template = "passwordchanged.";
     const reply_to = "noreply@thritify.com";
-    const send_from = process.env.EMAIL_USER;
+    const send_from = process.env.EMAIL_SENDER;
     const subject = "Your password has been changed successfully";
     const send_to = user.email;
     const name = user.name;
@@ -1521,7 +1493,7 @@ const sellerEarnings = itemPrice - companyFee - transactionFee;
       
         const template = "buyerpurchased.";
         const reply_to = "noreply@thritify.com";
-        const send_from = process.env.EMAIL_USER;
+        const send_from = process.env.EMAIL_SENDER;
         const subject = "Item successfully purchased";
         const send_to = metadata.buyerEmail;
         const sellername = metadata.sellerName;
@@ -1704,7 +1676,7 @@ const UpdatePurchasedItem = asyncHandler(async (req, res) => {
     const subject = `Your purchased item ${purchasedgoods.title} has been sent`;
     const orderid = purchasedgoodsId;
     const buyername = buyerFirstname;
-    const sent_from = process.env.EMAIL_USER;
+    const sent_from = process.env.EMAIL_SENDER;
     const reply_to = "noreply@thritify.com";
     const itemname = itemdetails;
     const file = req.file;
@@ -1867,7 +1839,7 @@ const ConfirmDelivery = asyncHandler(async (req, res) => {
     const name = sellerDetails.firstname;
     const itemprice = Purchaseditem.orderitems[0].price;
 
-    const sent_from = process.env.EMAIL_USER;
+    const sent_from = process.env.EMAIL_SENDER;
     const reply_to = "noreply@thritify.com";
     const cc = "dispatched@thriftiffy.com";
     const link = `${process.env.FRONTEND_USER}`;
@@ -2027,7 +1999,7 @@ Getsellerinfo.pendingSoldAmount = 0;
     const name = sellerDetails.firstname;
     const itemprice = Purchaseditem.orderitems[0].price;
     const orderid = itemid;
-    const sent_from = process.env.EMAIL_USER;
+    const sent_from = process.env.EMAIL_SENDER
     const reply_to = "noreply@thritify.com";
     const cc = "dispatched@thriftiffy.com";
     const link = `${process.env.FRONTEND_USER}`;
@@ -2171,7 +2143,7 @@ const requestWithdrawal = asyncHandler(async (req, res) => {
   const withdrawalTemplate = "RequestWithdrawal.";
   const subject = "Confirmation of Your Withdrawal Request";
   const userEmail = user.email;
-  const sentFrom = process.env.EMAIL_USER;
+  const sentFrom = process.env.EMAIL_SENDER;
   const replyTo = "noreply@thriftify.com";
   const cc = process.env.ADMIN_EMAIL;
   const amount = requestedAmount;
@@ -2254,7 +2226,7 @@ const customerPaid = asyncHandler(async (req, res) => {
   const withdrawalTemplate = "paid."; // Removed the trailing period
   const subject = "Your Withdrawal is on the Way – Thriftify Confirmation";
   const userEmail = user.email;
-  const sentFrom = process.env.EMAIL_USER;
+  const sentFrom = process.env.EMAIL_SENDER
   const replyTo = "noreply@thriftify.com";
   const cc = "dispatched@thriftiffy.com";
   const amount = amountPaid; // Corrected variable name
@@ -2354,7 +2326,7 @@ const idNotificationEmail = asyncHandler(async (req, res) => {
 
     // Prepare email details
     const name = `${user.firstname} ${user.lastname}`;
-    const sentFrom = process.env.EMAIL_USER;
+    const sentFrom = process.env.EMAIL_SENDER;
     const replyTo = "noreply@thriftify.com";
     const cc = "dispatched@thriftiffy.com";
     const customerEmail = user.email;
@@ -2433,7 +2405,7 @@ const idConfirmationEmail = asyncHandler(async (req, res) => {
 
     // Prepare email details
     const name = `${user.firstname}`;
-    const sentFrom = process.env.EMAIL_USER;
+    const sentFrom = process.env.EMAIL_SENDER;
     const replyTo = "noreply@thriftify.com";
     const cc = "dispatched@thriftiffy.com";
     const customerEmail = user.email;
@@ -2495,7 +2467,7 @@ if(user.idVerified){
 
     // Prepare email details
     const name = `${user.firstname} ${user.lastname}`;
-    const sentFrom = process.env.EMAIL_USER;
+    const sentFrom = process.env.EMAIL_SENDER;
     const replyTo = "noreply@thriftify.com";
     const cc = "dispatched@thriftiffy.com";
     const customerEmail = user.email;
@@ -2612,7 +2584,7 @@ const {name,email,phonenumber,message} =req.body
     }
 
     const viewsBasePath = process.env.VIEWS_PATH || path.join(__dirname, 'views');
-    const sendFrom = process.env.EMAIL_USER
+    const sendFrom = process.env.EMAIL_SENDER
     const sendTo = 'olubodekehinde2019@gmail.com'
     const template =  'messageus.'
 
@@ -2703,7 +2675,7 @@ const googleLogin = asyncHandler(async (req, res) => {
 
       const subject = "Google Signup Alert - Thriftify";
       const send_to = process.env.ADMIN_EMAIL; // Use env variable
-      const send_from = process.env.EMAIL_USER;
+      const send_from = process.env.EMAIL_SENDER;
       const reply_to = "noreply@thriftify.com";
       const template = "signupalert.";
       const name = user.firstName;
