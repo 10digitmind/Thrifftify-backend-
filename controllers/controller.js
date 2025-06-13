@@ -556,6 +556,45 @@ const verifyUser = asyncHandler(async (req, res) => {
   user.isVerified = true;
   await user.save();
 
+  const subject = "sign up alert";
+  const send_to = process.env.ADMIN_EMAIL;  // or item's seller email if you prefer
+  const send_from = process.env.EMAIL_SENDER ;
+  const reply_to = "noreply@thriftify.com";
+  const template = "signup Alert.";  // a template key if you're using one
+  const name = user.username; // or buyer name if applicable
+  const email = user.email
+ 
+ 
+
+  try {
+    await sendEmail(
+      subject,
+      send_to,
+        send_from,
+        reply_to,
+        null,
+        template,
+        name,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+     email
+    );
+    console.log(`Checkout alert sent to admin: ${send_to}`);
+  } catch (emailError) {
+    console.error("Failed to send checkout alert:", emailError.message);
+    // Don't block checkout if email fails — just log it.
+  }
+
+
+
   res
     .status(200)
     .json({ message: "Account verification sucessfull, please login;  " });
@@ -2233,7 +2272,7 @@ const customerPaid = asyncHandler(async (req, res) => {
   const amount = amountPaid; // Corrected variable name
 
   // Send confirmation email
-  await (
+  await sendEmail (
     subject,
     userEmail,
     sentFrom,
@@ -2760,41 +2799,41 @@ const checkoutItem = asyncHandler(async (req, res) => {
 
   // Send email notification to admin (or seller, depending on your flow)
    
-    // const subject = "someone currently checking your item - Thriftify";
-    // const send_to = item.sellerdetails[0].email;  // or item's seller email if you prefer
-    // const send_from = process.env.EMAIL_USER;
-    // const reply_to = "noreply@thriftify.com";
-    // const template = "checkoutalert.";  // a template key if you're using one
-    // const name = item.sellerdetails[0].firstname; // or buyer name if applicable
-    // const itemname = item.title
-    // const cc =process.env.ADMIN_EMAIL
+    const subject = "someone currently checking your item - Thriftify";
+    const send_to = item.sellerdetails[0].email;  // or item's seller email if you prefer
+    const send_from = process.env.EMAIL_SENDER ;
+    const reply_to = "noreply@thriftify.com";
+    const template = "checkoutalert.";  // a template key if you're using one
+    const name = item.sellerdetails[0].firstname; // or buyer name if applicable
+    const itemname = item.title
+    const cc =process.env.ADMIN_EMAIL
 
-    // try {
-    //   await sendEmail(
-    //     subject,
-    //     send_to,
-    //       send_from,
-    //       reply_to,
-    //       cc,
-    //       template,
-    //       name,
-    //       null,
-    //       null,
-    //       null,
-    //       null,
-    //       itemname,
-    //       null,
-    //       null,
-    //       null,
-    //       null,
-    //       null,
-    //    null
-    //   );
-    //   console.log(`Checkout alert sent to admin: ${send_to}`);
-    // } catch (emailError) {
-    //   console.error("Failed to send checkout alert:", emailError.message);
-    //   // Don't block checkout if email fails — just log it.
-    // }
+    try {
+      await sendEmail(
+        subject,
+        send_to,
+          send_from,
+          reply_to,
+          cc,
+          template,
+          name,
+          null,
+          null,
+          null,
+          null,
+          itemname,
+          null,
+          null,
+          null,
+          null,
+          null,
+       null
+      );
+      console.log(`Checkout alert sent to admin: ${send_to}`);
+    } catch (emailError) {
+      console.error("Failed to send checkout alert:", emailError.message);
+      // Don't block checkout if email fails — just log it.
+    }
 
    
     res.status(200).json(item);
