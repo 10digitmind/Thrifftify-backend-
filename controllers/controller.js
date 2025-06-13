@@ -560,7 +560,7 @@ const verifyUser = asyncHandler(async (req, res) => {
   const send_to = process.env.ADMIN_EMAIL;  // or item's seller email if you prefer
   const send_from = process.env.EMAIL_SENDER ;
   const reply_to = "noreply@thriftify.com";
-  const template = "signup Alert.";  // a template key if you're using one
+  const template = "signupalert.";  // a template key if you're using one
   const name = user.username; // or buyer name if applicable
   const email = user.email
  
