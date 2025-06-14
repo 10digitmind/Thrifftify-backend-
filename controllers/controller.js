@@ -2808,32 +2808,32 @@ const checkoutItem = asyncHandler(async (req, res) => {
     const itemname = item.title
     const cc =process.env.ADMIN_EMAIL
 
-    // try {
-    //   await sendEmail(
-    //     subject,
-    //     send_to,
-    //       send_from,
-    //       reply_to,
-    //       cc,
-    //       template,
-    //       name,
-    //       null,
-    //       null,
-    //       null,
-    //       null,
-    //       itemname,
-    //       null,
-    //       null,
-    //       null,
-    //       null,
-    //       null,`
-    //    null
-    //   );
-    //   console.log(`Checkout alert sent to admin: ${send_to}`);
-    // } catch (emailError) {
-    //   console.error("Failed to send checkout alert:", emailError.message);
-    //   // Don't block checkout if email fails — just log it.
-    // }
+     try {
+       await sendEmail(
+         subject,
+         send_to,
+           send_from,
+           reply_to,
+           cc,
+           template,
+           name,
+           null,
+           null,
+           null,
+           null,
+           itemname,
+           null,
+           null,
+           null,
+           null,
+           null,
+        null
+       );
+       
+     } catch (emailError) {
+       console.error("Failed to send checkout alert:", emailError.message);
+       // Don't block checkout if email fails — just log it.
+     }
 
    
     res.status(200).json(item);
