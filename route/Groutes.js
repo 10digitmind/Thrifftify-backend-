@@ -85,7 +85,8 @@ const {
   createDeliveryFee,
   getDeliveryFee,
   imgKitAuth,
-  collectBuyerInterestInfo
+  collectBuyerInterestInfo,
+  getSellerProfile
 
 } = require("../controllers/controller");
 
@@ -280,6 +281,9 @@ router.get("/api/users/getdeliveryfees/:sellerId", protect, getDeliveryFee);
 router.post("/api/users/collectbuyerinfo", collectBuyerInterestInfo);
 
 router.get("/api/users/imagekit-auth",imgKitAuth);
+
+router.get("/api/users/get-seller-profile/:sellerId",getSellerProfile);
+
 
 
 

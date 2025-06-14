@@ -2808,32 +2808,32 @@ const checkoutItem = asyncHandler(async (req, res) => {
     const itemname = item.title
     const cc =process.env.ADMIN_EMAIL
 
-    try {
-      await sendEmail(
-        subject,
-        send_to,
-          send_from,
-          reply_to,
-          cc,
-          template,
-          name,
-          null,
-          null,
-          null,
-          null,
-          itemname,
-          null,
-          null,
-          null,
-          null,
-          null,
-       null
-      );
-      console.log(`Checkout alert sent to admin: ${send_to}`);
-    } catch (emailError) {
-      console.error("Failed to send checkout alert:", emailError.message);
-      // Don't block checkout if email fails — just log it.
-    }
+    // try {
+    //   await sendEmail(
+    //     subject,
+    //     send_to,
+    //       send_from,
+    //       reply_to,
+    //       cc,
+    //       template,
+    //       name,
+    //       null,
+    //       null,
+    //       null,
+    //       null,
+    //       itemname,
+    //       null,
+    //       null,
+    //       null,
+    //       null,
+    //       null,`
+    //    null
+    //   );
+    //   console.log(`Checkout alert sent to admin: ${send_to}`);
+    // } catch (emailError) {
+    //   console.error("Failed to send checkout alert:", emailError.message);
+    //   // Don't block checkout if email fails — just log it.
+    // }
 
    
     res.status(200).json(item);
@@ -3276,6 +3276,97 @@ const collectBuyerInterestInfo = async (req, res) => {
 
 
  
+
+const getSellerProfile = asyncHandler(async (req, res) => {
+
+  const {sellerId} = req.params
+  try {
+  
+    if (!sellerId ){
+     
+      res.status(400).json({ message: 'sellerId is required'});
+      return;
+    }
+
+    const user = await User.findById(sellerId).select('-password');
+
+
+    if (!user) {
+      res.status(404).json({ message: "User not found" });
+      return;
+    }
+    const {
+      id,
+      email,
+      photo,
+      role,
+      isVerified,
+      idVerified,
+      phone,
+      lastname,
+      location,
+      firstname,
+      dob,
+      about,
+      totalPurchasedAmount,
+      totalSoldAmount,
+      pendingSoldAmount,
+      pendingWithdrawalAmount,
+      totalWithdrawalAmount,
+      pendingPurchasedAmount,
+      userAgent,
+      verificationRequested,
+      contactType,
+      username,
+      online,
+      lastSeen,
+      successfullDelivery
+    } = user;
+
+    const passphrase = process.env.CRYPTO_JS
+    const encryptedEmail = email === null?'': CryptoJS.AES.encrypt(email.toString(), passphrase).toString()
+    const encryptedPhone = phone === null ? '':CryptoJS.AES.encrypt(phone.toString(), passphrase).toString()
+    const encryptedDob = dob ===null ? '' :CryptoJS.AES.encrypt(dob.toString(), passphrase).toString()
+
+
+    
+    
+    res.status(200).json({
+      id,
+      firstname,
+      lastname,
+      username,
+      location,
+      email:encryptedEmail,
+      photo,
+      role,
+      isVerified,
+      idVerified,
+      phone:encryptedPhone,
+      dob:encryptedDob,
+      about,
+      totalPurchasedAmount,
+      totalSoldAmount,
+      pendingSoldAmount,
+      pendingWithdrawalAmount,
+      totalWithdrawalAmount,
+      pendingPurchasedAmount,
+      userAgent,
+      verificationRequested,
+      contactType,
+      online,
+      lastSeen,
+      successfullDelivery
+    });
+    console.log("User response sent successfully");
+  } catch (error) {
+    console.error("Error in getUser:", error);
+    res.status(500).json({ message: error.message });
+  }
+});
+
+
+
 module.exports = {
   createUser,
   getUser,
@@ -3333,7 +3424,8 @@ module.exports = {
   createDeliveryFee,
   getDeliveryFee,
   imgKitAuth,
-  collectBuyerInterestInfo
-
+  collectBuyerInterestInfo,
+  getSellerProfile
 
 };
+
