@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Still Interested?</title>
+  <style>
+    body {
+      margin: 0;
+      padding: 0;
+      font-family: Arial, Helvetica, sans-serif;
+      background-color: #ffffff;
+      color: #000000;
+    }
+
+    .header {
+      background-color: #000000;
+      color: #ffffff;
+      padding: 20px;
+      text-align: center;
+    }
+
+    .container {
+      padding: 20px;
+    }
+
+    .item-preview {
+      text-align: center;
+      margin: 20px 0;
+    }
+
+    .item-preview img {
+      width: 250px;
+      max-width: 100%;
+      border-radius: 10px;
+    }
+
+    .item-title {
+      font-size: 18px;
+      font-weight: bold;
+      margin-top: 10px;
+      color: #bfa23a; /* gold */
+    }
+
+    .button {
+      background-color: #bfa23a; /* gold */
+      color: #ffffff;
+      padding: 10px 20px;
+      text-decoration: none;
+      border-radius: 6px;
+      display: inline-block;
+      margin-top: 20px;
+    }
+
+    .footer {
+      font-size: 13px;
+      text-align: center;
+      padding: 20px;
+      color: #999999;
+    }
+  </style>
+</head>
+<body>
+  <div class="header">
+    <h1>Thriftiffy</h1>
+  </div>
+
+  <div class="container">
+    <h2>Hey {{name}},</h2>
+    <p>
+      You recently showed interest in the item below on Thriftify but haven't completed the purchase yet.
+    </p>
+
+    <div class="item-preview">
+      <img src="{{itemprice}}" alt="{{itemname}}" />
+      <div class="item-title">{{itemname}}</div>
+    </div>
+
+    <p>
+      Is there any issue placing your order? If you need help, we’re here for you!
+    </p>
+    <p>
+      You can <a href="{{link}}" style="color:green">chat with us on WhatsApp</a> and we'll help you buy the item easily.
+      You can also contact the seller directly if you have more questions.
+    </p>
+
+    <p>
+      Also, don’t forget — use our <strong>₦5,000 OFF coupon code</strong> at checkout!
+    </p>
+
+    <a class="button" href="{{sellername}}">Complete Your Purchase</a>
+
+    <p class="footer">
+      This message was sent because you expressed interest in an item on Thriftify.
+    </p>
+  </div>
+</body>
+</html>

@@ -2966,10 +2966,70 @@ const userCoversation = async (req, res) => {
 
 
 
+const sendbuyerReminder = async (req, res) => {
+  try {
+   
+    const fiveHoursAgo = new Date(Date.now() - 5 * 60 * 60 * 1000);
+    const buyers = await BuyerInterest.find({
+      reminderSent: false,
+      timestamp: { $lt: fiveHoursAgo }
+    });
+
+    for (const buyer of buyers){
+      const item = await good.findById(buyer.itemId)
+      
+      const name = buyer.buyerEmail.split("@")[0]
+      const itemprice =item.images[0]
+      const link = `https://wa.me/2348163446758?text=Hi%20I%20need%20help%20buying%20an%20item` 
+      const sellername=`https://thriftiffy.com/Checkoutpage/${item._id}`
+      const template = 'buyerreminder.'
+      const send_to = buyer.buyerEmail
+      const itemname =item.title
+      const subject = `Still interested in ${item.title}?`
+      const send_from =process.env.EMAIL_SENDER
+     const  reply_to = '<no-reply@thrifitffy.com>'
+      try {
+        await sendEmail(
+          subject,
+          send_to,
+            send_from,
+            reply_to,
+            null,
+            template,
+            name,
+            link,
+            null,
+            itemprice,
+            sellername,
+            itemname,
+            null,
+            null,
+            null,
+            null,
+            null,
+         null
+        );
+        console.log(`✅ Reminder sent to ${buyer.buyerEmail}`);
+      } catch (emailError) {
+        console.error("Failed to send checkout alert:", emailError.message);
+        // Don't block checkout if email fails — just log it.
+      }
+      buyer.reminderSent = true;
+      await buyer.save();
+    }
+  
+  // Save to DB
+    
+  } catch (error) {
+    console.error("Error collecting buyer interest:", error);
+    return res.status(500).json({ message: "Server error collecting buyer interest" });
+  }
+};
 
 
 
-
+// Run every hour buyer reminder
+cron.schedule('0 * * * *', sendbuyerReminder);
 
 
 // Run at midnight every day
@@ -3364,6 +3424,8 @@ const getSellerProfile = asyncHandler(async (req, res) => {
     res.status(500).json({ message: error.message });
   }
 });
+
+
 
 
 

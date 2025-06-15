@@ -27,6 +27,7 @@
     "express": "^4.19.2",
     "express-async-handler": "^1.2.0",
     "google-auth-library": "^9.15.1",
+    "imagekit": "^6.0.0",
     "jimp": "^0.22.12",
     "jsonwebtoken": "^9.0.2",
     "mongodb": "^6.15.0",
