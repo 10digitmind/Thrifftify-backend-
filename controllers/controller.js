@@ -2975,6 +2975,10 @@ const sendbuyerReminder = async (req, res) => {
       timestamp: { $lt: fiveHoursAgo }
     });
 
+    if (buyers.length === 0) {
+      console.log('No buyer reminders to send at this time.');
+      return;
+    }
     for (const buyer of buyers){
       const item = await good.findById(buyer.itemId)
       
