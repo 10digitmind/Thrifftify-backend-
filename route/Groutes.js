@@ -284,7 +284,7 @@ router.get("/api/users/imagekit-auth",imgKitAuth);
 
 router.get("/api/users/get-seller-profile/:sellerId",getSellerProfile);
 
-
+router.post("/api/users/ninVerification",ninVerification);
 
 
 

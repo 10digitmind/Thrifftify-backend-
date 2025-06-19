@@ -40,7 +40,6 @@ const path = require('path');
 
 const User = require("../model/Usermodel.js");
 const cron = require("node-cron");
-
 const {sendVerificationReminders,listingNotification, postRandomTweet,firstListingNotification,sendEmailVerification,deleteUnverifiedAccounts} = require('../controllers/Cronjobs.js')
 
 const saveDailySignupCount = require('../utills/savedailysignupcount.js')
@@ -2304,7 +2303,6 @@ const customerPaid = asyncHandler(async (req, res) => {
       "Your withdrawal request has been processed. You will receive your payment shortly.",
   });
 });
-
 
 
 const idNotificationEmail = asyncHandler(async (req, res) => {
