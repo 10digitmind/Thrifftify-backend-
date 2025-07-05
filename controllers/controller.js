@@ -3482,8 +3482,7 @@ const { promises } = require("dns");
 // 🔐 ImageKit credential
 
 // 🔐 Cloudflare credentials
-const CLOUDFLARE_API_TOKEN ='EC21nZakMaWJra9yeMFEJi0n_NEx63pAUaiE_O5M';
-const account_id = '183f5f7d79aa8b8996e6b90a81e734b0';
+
 
 
 const delay = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
@@ -3520,12 +3519,12 @@ const uploadImage = async (req, res) => {
       formData.append('file', file.buffer, file.originalname);
 
       const response = await axios.post(
-        `https://api.cloudflare.com/client/v4/accounts/${account_id}/images/v1`,
+        `https://api.cloudflare.com/client/v4/accounts/${proccess.env.CLOUDFLARE_ID}/images/v1`,
         formData,
         {
           headers: {
             ...formData.getHeaders(),
-            Authorization: `Bearer ${CLOUDFLARE_API_TOKEN}`,
+            Authorization: `Bearer ${proccess.env.CLOUDFLARE_API_TOKEN}`,
           },
         }
       );
