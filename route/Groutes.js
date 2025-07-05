@@ -22,10 +22,15 @@ const mailstorage = multer.diskStorage({
   }
 });
 
-const mailupload = multer({ storage: mailstorage }).array('multiple', 2);
+const mailupload = multer({ storage: mailstorage }).array('multiple', 4);
 const singleuplaod =multer({ storage: mailstorage }).single('image');
 
-
+const uploadcloud = multer({
+  storage,
+  limits: {
+    fileSize: 10 * 1024 * 1024, // 10MB max file size
+  },
+}).array('images', 6); 
 
 
 const {
@@ -86,7 +91,12 @@ const {
   getDeliveryFee,
   imgKitAuth,
   collectBuyerInterestInfo,
-  getSellerProfile
+  getSellerProfile,
+  createStore,
+  updateStore,
+  getStore,
+  uploadImage,
+  confirmSubscription
 
 } = require("../controllers/controller");
 
@@ -276,17 +286,22 @@ router.post("/api/users/initchat", protect, initChat);
 router.post("/api/users/spin", protect, spin);
 router.get("/api/users/check-spin", protect, checkSpinStatus);
 router.post("/api/users/createdeliveryfee", protect, createDeliveryFee);
-router.get("/api/users/getdeliveryfees/:sellerId", protect, getDeliveryFee);
+router.get("/api/users/getdeliveryfees/:sellerId", getDeliveryFee);
 
 router.post("/api/users/collectbuyerinfo", collectBuyerInterestInfo);
 
-router.get("/api/users/imagekit-auth",imgKitAuth);
+router.post("/api/users/image-upload",uploadcloud,uploadImage);
 
 router.get("/api/users/get-seller-profile/:sellerId",getSellerProfile);
 
 router.post("/api/users/ninVerification",ninVerification);
 
+router.post("/api/users/create-store", protect, createStore);
 
+router.put("/api/users/update-store", protect, updateStore);
 
+router.get("/api/users/get-store/:userId", getStore);
+
+router.get("/api/users/confirm-subscription", confirmSubscription);
 
 module.exports = router;

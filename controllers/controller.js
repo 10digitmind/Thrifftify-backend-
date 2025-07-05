@@ -16,7 +16,9 @@ const Coupon = require('../model/CouponModel.js')
 const CouponUsage =require("../model/Couponuseagemodel.js");
 const DeletedUser = require('../model/DeletedUser.js')
 const Delivery = require('../model/deliverySchema.js');
+const StoreSetting = require('../model/StoreSetting.js');
 const BuyerInterest = require('../model/BuyerInterets.js')
+
 const Chat = require('../model/chatRoomSchema.js')
 const Review = require("../model/Reviews.js");
 const crypto = require('crypto')
@@ -613,10 +615,7 @@ const logoutUser = asyncHandler(async (req, res) => {
   const token = authHeader.split(" ")[1];
 
   try {
-    // Optionally, you could verify the token here using JWT (if you want to ensure the token is valid)
-    // Example: jwt.verify(token, process.env.JWT_SECRET);
-
-    // Instead of clearing cookies, just send a response indicating that the logout was successful
+    
     return res.status(200).json({ message: "Logout successful" });
   } catch (error) {
     console.error("Error during logout:", error);
@@ -717,62 +716,49 @@ const getUser = asyncHandler(async (req, res) => {
 const updateUser = asyncHandler(async (req, res) => {
   const user = await User.findById(req.user._id);
 
-  if (user) {
-    const {
-      phone,
-      firstname,
-      lastname,
-      location,
-      email,
-      photo,
-      role,
-      isVerified,
-      about,
-      dob
-    } = user;
-
-    user.firstname = req.body.firstname || firstname;
-    user.lastname = req.body.lastname || lastname;
-    user.location = req.body.location || location;
-    user.photo = req.body.photo || photo;
-    user.phone = req.body.phone || phone;
-    user.role = req.body.role || role;
-    user.about = req.body.about || about;
-    user.email = email;
-
-    // Ensure dob remains a Date object and is valid
-    if (req.body.dob) {
-      const date = new Date(req.body.dob);
-
-      if (!isNaN(date.getTime())) {
-        user.dob = date;
-      } else {
-        console.log("Invalid DOB provided:", req.body.dob);
-      }
-    }
-
-    try {
-      const updatedUser = await user.save();
-      res.status(200).json({
-        lastname: updatedUser.lastname,
-        firstname: updatedUser.firstname,
-        location: updatedUser.location,
-        phone: updatedUser.phone,
-        about: updatedUser.about,
-        photo: updatedUser.photo,
-        role: updatedUser.role,
-        isVerified: updatedUser.isVerified,
-        dob: updatedUser.dob // This will return ISO format
-      });
-      console.log("DOB from request:", req.body.dob);
-      console.log("Parsed DOB:", user.dob);
-    } catch (error) {
-      console.log("Error saving user:", error);
-      res.status(500).json({ message: "Error saving user" });
-    }
-  } else {
+  if (!user) {
     res.status(400);
     throw new Error("User not found");
+  }
+
+  // Only update fields if provided
+  user.firstname = req.body.firstname ?? user.firstname;
+  user.lastname = req.body.lastname ?? user.lastname;
+  user.location = req.body.location ?? user.location;
+  user.phone = req.body.phone ?? user.phone;
+  user.photo = req.body.photo ?? user.photo;
+  user.role = req.body.role ?? user.role;
+  user.about = req.body.about ?? user.about;
+  user.dob = req.body.dob ?? user.dob;
+
+
+  // Prevent email from being updated here
+  // user.email remains unchanged
+  if (req.body.dob) {
+    const parsedDate = new Date(req.body.dob);
+    if (!isNaN(parsedDate.getTime())) {
+      user.dob = parsedDate;
+    } else {
+      console.log("Invalid DOB provided:", req.body.dob);
+    }
+  }
+
+  try {
+    const updatedUser = await user.save();
+    res.status(200).json({
+      lastname: updatedUser.lastname,
+      firstname: updatedUser.firstname,
+      location: updatedUser.location,
+      phone: updatedUser.phone,
+      about: updatedUser.about,
+      photo: updatedUser.photo,
+      role: updatedUser.role,
+      isVerified: updatedUser.isVerified,
+      dob: updatedUser.dob,
+    });
+  } catch (error) {
+    console.error("Error saving user:", error);
+    res.status(500).json({ message: "Error saving user" });
   }
 });
 
@@ -1118,103 +1104,62 @@ const changePassword = asyncHandler(async (req, res) => {
 // create goods
 
 const createGood = asyncHandler(async (req, res) => {
-
-
   const {
+    images,
     title,
     itemDescription,
     category,
+    subcategory,
     price,
-    brand,
-    condition,
-    size,
-    colour,
-    producttype,
-    images,
-    deliverydate
+    location,
+    attributes,
+    deliveryDate,
+
   } = req.body;
-
-
 
   try {
     const user = await User.findById(req.user._id);
-
     if (!user) {
-     
-      res.status(401).json({ message: "Please log in to be able to sell." });
-      return;
+      return res.status(401).json({ message: "Please log in to be able to sell." });
     }
-    const sellerDetails = {
-      // Assuming you have fields like name, email, etc.
-      firstname: user.firstname,
-      lastname: user.lastname,
-      location: user.location,
-      email: user.email,
-      about: user.about,
-      sellerid: user._id,
-      sellerStatus:user.online,
-      sucessfulldelivery: user.successfullDelivery,
 
-      // Add other fields as necessary
-    };
-
-    // const imageUrls = uploadResults.map(uploadRes => uploadRes.secure_url);
-
-    const good = await Good.create({
-      images, // Ensure only URLs are stored
+    const newGood = await Good.create({
+      userId: user._id,
+      images,
       title,
       itemDescription,
       category,
+      subcategory,
       price,
-      brand,
-      condition,
-      size,
-      colour,
-      producttype,
-      userId: user._id,
-      location: user.location.toString(),
-      deliverydate,
-      sellerdetails: sellerDetails,
+      location: location || user.location.toString(),
+      attributes,
+      deliveryDate,
     });
-    const usergoods = await Good.find({ userId: user._id }).select(
-      "-allusergoods"
-    );
   
-    good.allusergoods = usergoods;
-
-    await good.save();
 
     const updatedGoods = await Good.find({ userId: user._id });
 
+    // Send notification and add auto-review if it's their first good
     if (updatedGoods.length === 1) {
       await firstListingNotification(user._id);
 
-      const review = new Review({
+      const autoReview = new Review({
         userId: user._id,
-        rating: 5, // Default rating
-        name: "Thriftiffy", // Assuming 'name' field in User schema
-        comment: "Auto-feedback: Sale completed successfully.", // Default comment
+        rating: 5,
+        name: "Thriftiffy",
+        comment: "Auto-feedback: Sale completed successfully.",
       });
-  
-      await review.save(); 
+
+      await autoReview.save();
     }
 
-
-    // Save the review
-
-    if (good) {
-  
-      res.status(201).json({ good });
-   
-    } else {
-    
-      res.status(500).json({ message: "Failed to create good." });
-    }
+    res.status(201).json(newGood);
   } catch (error) {
-    console.error("Error occurred:", error);
+    console.error("Error creating good:", error);
     res.status(500).json({ message: error.message });
   }
 });
+
 
 //aproved goods to dsplay on frontend
 const getAllApprovedgoods = asyncHandler(async (req, res) => {
@@ -1267,71 +1212,56 @@ const getAllgoodsbyUser = asyncHandler(async (req, res) => {
 const Updateusergoods = asyncHandler(async (req, res) => {
   const itemId = req.params.id;
   const user = await User.findById(req.user._id);
-  const userItem = await Good.findOne({ userId: user, _id: itemId });
+
+  const userItem = await Good.findOne({ userId: user._id, _id: itemId });
 
   if (!userItem) {
     return res
       .status(404)
-      .json({ message: "item not found , or incorrect item id " });
+      .json({ message: "Item not found or incorrect item ID" });
   }
-  if (userItem) {
-    const {
-      title,
-      itemDescription,
-      category,
-      price,
-      brand,
-      condition,
-      size,
-      colour,
-      producttype,
-      images,
-      deliveryfeetoibadan,
-      deliveryfeetolagos,
-      sellerdetails,
-      allusergoods,
-    } = userItem;
 
-    userItem.title = req.body.title || title;
-    userItem.itemDescription = req.body.itemDescription || itemDescription;
-    userItem.category = req.body.category || category;
-    userItem.price = req.body.price || price;
-    userItem.brand = req.body.brand || brand;
-    userItem.condition = req.body.condition || condition;
-    userItem.size = req.body.size || size;
-    userItem.colour = req.body.colour || colour;
-    userItem.producttype = req.body.producttype || producttype;
-    userItem.images = req.body.images || images;
-    userItem.deliveryfeetoibadan =
-      req.body.deliveryfeetoibadan || deliveryfeetoibadan;
-    userItem.deliveryfeetolagos =
-      req.body.deliveryfeetolagos || deliveryfeetolagos;
-    userItem.sellerdetails = req.body.sellerdetails || sellerdetails;
-    userItem.allusergoods = req.body.sellerdetails || allusergoods;
+  const {
+    images,
+    title,
+    itemDescription,
+    category,
+    subcategory,
+    price,
+    location,
+    attributes,
+    deliveryDate,
+  } = userItem;
 
-    const updateditem = await userItem.save();
+  // Update allowed fields
+  userItem.title = req.body.title || title;
+  userItem.itemDescription = req.body.itemDescription || itemDescription;
+  userItem.category = req.body.category || category;
+  userItem.price = req.body.price || price;
+  userItem.subcategory = req.body.subcategory || subcategory;
+  userItem.images = req.body.images || images;
+  userItem.deliveryDate = req.body.deliveryDate || deliveryDate;
+  userItem.location = req.body.location || location;
+  userItem.attributes = req.body.attributes || attributes;
 
-    res.status(200).json({
-      title: updateditem.title,
-      itemDescription: updateditem.itemDescription,
-      category: updateditem.category,
-      brand: updateditem.brand,
-      condition: updateditem.condition,
-      size: updateditem.size,
-      colour: updateditem.colour,
-      producttype: updateditem.producttype,
-      images: updateditem.images,
-      price: updateditem.price,
-      deliveryfeetolagos: updateditem.deliveryfeetolagos,
-      deliveryfeetoibadan: updateditem.deliveryfeetoibadan,
-      allusergoods: updateditem.allusergoods,
-      sellerdetails: updateditem.sellerdetails,
-    });
-  } else {
-    res.status(400);
-    throw new Error("unable to save goods");
-  }
+
+
+  const updateditem = await userItem.save();
+
+  res.status(200).json({
+    _id: updateditem._id,
+    title: updateditem.title,
+    itemDescription: updateditem.itemDescription,
+    category: updateditem.category,
+    subcategory: updateditem.subcategory,
+    images: updateditem.images,
+    price: updateditem.price,
+    deliveryDate: updateditem.deliveryDate,
+    location: updateditem.location,
+    attributes: updateditem.attributes,
+  });
 });
+
 
 //delete usersitem
 
@@ -1339,12 +1269,34 @@ const Deleteusergoods = asyncHandler(async (req, res) => {
   const itemId = req.params.id;
 
   const user = await User.findById(req.user._id);
-  const userItem = await Good.findOneAndDelete({ userId: user, _id: itemId });
+  const userItem = await Good.findOneAndDelete({ userId: user._id, _id: itemId });
 
   if (!userItem) {
-    res.status(400).json({ message: "item not found or its already deleted" });
-  } else {
-    res.status(200).json({ message: "item deleted successfully" });
+    return res.status(400).json({ message: "Item not found or already deleted" });
+  }
+
+  try {
+    const imageIds = userItem.images
+      .map(img => img.id) // or extract from img.url
+      .filter(Boolean);
+
+    for (const imageId of imageIds) {
+     const deletedimage = await axios.delete(
+        `https://api.cloudflare.com/client/v4/accounts/${account_id}/images/v1/${imageId}`,
+        {
+          headers: {
+            Authorization: `Bearer ${CLOUDFLARE_API_TOKEN}`,
+          },
+        }
+      );
+    }
+
+    return res.status(200).json({ message: "Item and images deleted successfully" });
+  } catch (err) {
+    console.error("Failed to delete images from Cloudflare:", err.message);
+    return res.status(500).json({
+      message: "Item deleted but failed to delete Cloudflare images",
+    });
   }
 });
 
@@ -2797,41 +2749,41 @@ const checkoutItem = asyncHandler(async (req, res) => {
 
   // Send email notification to admin (or seller, depending on your flow)
    
-    const subject = "someone currently checking your item - Thriftify";
-    const send_to = item.sellerdetails[0].email;  // or item's seller email if you prefer
-    const send_from = process.env.EMAIL_SENDER ;
-    const reply_to = "noreply@thriftify.com";
-    const template = "checkoutalert.";  // a template key if you're using one
-    const name = item.sellerdetails[0].firstname; // or buyer name if applicable
-    const itemname = item.title
-    const cc =process.env.ADMIN_EMAIL
+    // const subject = "someone currently checking your item - Thriftify";
+    // const send_to = item.sellerdetails[0].email;  // or item's seller email if you prefer
+    // const send_from = process.env.EMAIL_SENDER ;
+    // const reply_to = "noreply@thriftify.com";
+    // const template = "checkoutalert.";  // a template key if you're using one
+    // const name = item.sellerdetails[0].firstname; // or buyer name if applicable
+    // const itemname = item.title
+    // const cc =process.env.ADMIN_EMAIL
 
-     try {
-       await sendEmail(
-         subject,
-         send_to,
-           send_from,
-           reply_to,
-           cc,
-           template,
-           name,
-           null,
-           null,
-           null,
-           null,
-           itemname,
-           null,
-           null,
-           null,
-           null,
-           null,
-        null
-       );
+    //  try {
+    //    await sendEmail(
+    //      subject,
+    //      send_to,
+    //        send_from,
+    //        reply_to,
+    //        cc,
+    //        template,
+    //        name,
+    //        null,
+    //        null,
+    //        null,
+    //        null,
+    //        itemname,
+    //        null,
+    //        null,
+    //        null,
+    //        null,
+    //        null,
+    //     null
+    //    );
        
-     } catch (emailError) {
-       console.error("Failed to send checkout alert:", emailError.message);
-       // Don't block checkout if email fails — just log it.
-     }
+    //  } catch (emailError) {
+    //    console.error("Failed to send checkout alert:", emailError.message);
+    //    // Don't block checkout if email fails — just log it.
+    //  }
 
    
     res.status(200).json(item);
@@ -3349,7 +3301,6 @@ const getSellerProfile = asyncHandler(async (req, res) => {
       res.status(400).json({ message: 'sellerId is required'});
       return;
     }
-
     const user = await User.findById(sellerId).select('-password');
 
 
@@ -3429,6 +3380,299 @@ const getSellerProfile = asyncHandler(async (req, res) => {
 
 
 
+const createStore = async (req, res) => {
+  try {
+    const existingStore = await StoreSetting.findOne({ userId: req.user._id });
+    if (existingStore) {
+      return res.status(400).json({ message: "Store already exists." });
+    }
+
+    const newStore = await StoreSetting.create({
+      userId: req.user._id,
+      welcomeMessage: req.body.welcomeMessage || "Welcome to my store!",
+      theme: req.body.theme || "white-black",
+      storeLogo: req.body.storeLogo || "",
+      bannerImage: req.body.bannerImage || "",
+      bgImage: req.body.bgImage || "",
+      businessPhoneNumber: req.body.businessPhoneNumber || "+234",
+      businessPolicy: req.body.businessPolicy || "",
+      socialLinks: req.body.socialLinks || {
+        tiktok: "",
+        instagram: "",
+        x: "",
+        facebook: "",
+      },
+    });
+    res.status(201).json(newStore);
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ message: "Something went wrong." });
+  
+  }
+};
+
+
+const updateStore = async (req, res) => {
+  try {
+    const store = await StoreSetting.findOneAndUpdate(
+      { userId: req.user._id },
+      {
+        $set: {
+          welcomeMessage: req.body.welcomeMessage,
+          theme: req.body.theme,
+          storeLogo: req.body.storeLogo,
+          bannerImage: req.body.bannerImage,
+          businessPhoneNumber: req.body.businessPhoneNumber,
+          businessPolicy: req.body.businessPolicy,
+          socialLinks: req.body.socialLinks,
+          bannerImage:req.body.bannerImage,
+        bgImage:req.body.bgImage
+        },
+      },
+      { new: true }
+    );
+
+    res.status(200).json(store);
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ message: "Error updating store settings." });
+  }
+};
+
+const getStore = async (req, res) => {
+  const {userId} = req.params
+
+  try {
+    console.log(req.params.id)
+    const store = await StoreSetting.findOne({ userId: userId });
+  
+    res.status(200).json(store);
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ message: "Error fetching store settings." });
+  }
+};
+
+const ImageKit = require("imagekit");
+
+const imagekit = new ImageKit({
+  publicKey:'public_T8ek1QMyg40CArCIkMhkr+6l2Zk=',
+  privateKey: 'private_yLG/CmfU8HijQDMPc4Svy9qR1yA=',
+  urlEndpoint: "https://ik.imagekit.io/g7d7ghaa7",
+});
+
+const privateKey = 'private_yLG/CmfU8HijQDMPc4Svy9qR1yA='
+const publicKey ='public_T8ek1QMyg40CArCIkMhkr+6l2Zk='
+
+
+const auth = Buffer.from(`${privateKey}:`).toString('base64');
+
+
+
+
+
+
+
+
+const FormData = require('form-data');
+const fs = require('fs');
+const { promises } = require("dns");
+
+
+// 🔐 ImageKit credential
+
+// 🔐 Cloudflare credentials
+const CLOUDFLARE_API_TOKEN ='EC21nZakMaWJra9yeMFEJi0n_NEx63pAUaiE_O5M';
+const account_id = '183f5f7d79aa8b8996e6b90a81e734b0';
+
+
+const delay = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
+
+
+const uploadImagesToCloudflare = async () => {
+  const allGoods = await Good.find({});
+
+  for (const item of allGoods) {
+    const sellerid = item.userId
+  let sellecount  = 0
+    let selleremail = await User.findById(sellerid)
+    sellecount += selleremail.email
+    console.log(sellecount)
+   
+  }
+
+  console.log('✅ All done!');
+};
+
+
+
+
+const uploadImage = async (req, res) => {
+  try {
+    if (!req.files || req.files.length === 0) {
+      return res.status(400).json({ error: 'No files uploaded' });
+    }
+
+    const uploadedImages = [];
+
+    for (const file of req.files) {
+      const formData = new FormData();
+      formData.append('file', file.buffer, file.originalname);
+
+      const response = await axios.post(
+        `https://api.cloudflare.com/client/v4/accounts/${account_id}/images/v1`,
+        formData,
+        {
+          headers: {
+            ...formData.getHeaders(),
+            Authorization: `Bearer ${CLOUDFLARE_API_TOKEN}`,
+          },
+        }
+      );
+
+  
+      if (response.data.success) {
+        uploadedImages.push({
+          id: response.data.result.id,
+          url: response.data.result.variants[0],
+        });
+      } else {
+        return res.status(400).json({ error: 'Upload failed', details: response.data.errors });
+      }
+    }
+
+    return res.json({
+      message: 'All uploads successful',
+      imageUrls: uploadedImages,
+    });
+  } catch (error) {
+    console.error('Upload error:', error.response?.data || error.message);
+    return res.status(500).json({ error: 'Internal Server Error' });
+  }
+};
+
+
+const DeletedGoods = require('../model/DeletedGoodsSchema.js');
+
+
+
+async function backupAndDeleteGoods() {
+  try {
+    // Fetch all goods
+    const allGoods = await good.find();
+
+    if (allGoods.length === 0) {
+      console.log('No goods found to delete.');
+      return;
+    }
+
+    // Prepare backup documents
+    const backupDocs = allGoods.map(good => ({
+      originalGoodId: good._id,
+      data: good.toObject(),
+      deletedAt: new Date(),
+    }));
+
+    // Insert all backup docs into DeletedGoods collection
+    await DeletedGoods.insertMany(backupDocs);
+
+    // Delete all goods from the original collection
+    await good.deleteMany();
+
+    console.log(`Backed up and deleted ${allGoods.length} goods successfully.`);
+  } catch (err) {
+    console.error('Error during backup and delete:', err);
+  }
+}
+
+
+const createSubscription = async (req, res) => {
+  try {
+    const { plan } = req.body; // 'monthly' or 'yearly'
+
+    if (!plan) {
+      return res.status(400).json({ error: 'Plan is required' });
+    }
+
+    // Assuming user ID is in req.user.id from your auth middleware
+    const user = await User.findById(req.user.id);
+    if (!user) {
+      return res.status(404).json({ error: 'User not found' });
+    }
+
+    const amount = plan === 'yearly' ? 2500000 : 250000; // Paystack expects kobo (₦25,000 or ₦2,500)
+
+    const paystackResponse = await axios.post(
+      'https://api.paystack.co/transaction/initialize',
+      {
+        email: user.email,
+        amount,
+        callback_url: 'https://yourdomain.com/payment/callback', // Update this to your actual callback URL
+        metadata: { plan },
+      },
+      {
+        headers: {
+          Authorization: `Bearer ${PAYSTACK_SECRET_KEY}`,
+          'Content-Type': 'application/json',
+        },
+      }
+    );
+
+    const { authorization_url } = paystackResponse.data.data;
+
+    return res.json({ authorization_url });
+  } catch (error) {
+    console.error('Paystack init error:', error.response?.data || error.message);
+    res.status(500).json({ error: 'Failed to initialize subscription' });
+  }
+};
+
+
+const confirmSubscription = async (req, res) => {
+  const { reference } = req.query;
+
+  try {
+    const response = await axios.get(`https://api.paystack.co/transaction/verify/${reference}`, {
+      headers: {
+        Authorization: `Bearer ${process.env.PAYSTACK_SECRET_KEY}`,
+      },
+    });
+
+    const data = response.data.data;
+
+    if (data.status === 'success') {
+      const email = data.customer.email;
+      const amount = data.amount;
+
+      const plan = amount === 2500000 ? 'yearly' : 'monthly';
+      const expiresAt = plan === 'yearly'
+        ? new Date(Date.now() + 365 * 24 * 60 * 60 * 1000)
+        : new Date(Date.now() + 30 * 24 * 60 * 60 * 1000);
+
+      // Update the user in the database
+      const user = await User.findOne({ email });
+      if (user) {
+        user.isSubscribed = true;
+        user.subscriptionPlan = plan;
+        user.subscriptionExpiresAt = expiresAt;
+        await user.save();
+      }
+
+      return res.redirect('/dashboard?payment=success');
+    } else {
+      return res.redirect('/subscribe?payment=failed');
+    }
+  } catch (error) {
+    console.error('Verification error:', error.response?.data || error.message);
+    return res.redirect('/subscribe?payment=error');
+  }
+};
+
+
+
+
+
+
 
 
 module.exports = {
@@ -3489,7 +3733,13 @@ module.exports = {
   getDeliveryFee,
   imgKitAuth,
   collectBuyerInterestInfo,
-  getSellerProfile
+  getSellerProfile,
+  createStore,
+  updateStore,
+  getStore,
+  uploadImage,
+  confirmSubscription,
+  confirmSubscription
 
 };
 

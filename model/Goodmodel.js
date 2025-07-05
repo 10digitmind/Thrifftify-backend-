@@ -5,117 +5,86 @@ const Goodschema = mongoose.Schema(
   {
     userId: {
       type: mongoose.Schema.Types.ObjectId,
-      ref: 'User', // Assuming the model name is 'User'
+      ref: 'User',
     },
-    images: {
-      type: [String],
-      required: true
-    },
+
+    images: [
+      {
+        url: String,
+        id: String // Cloudflare image ID
+      }
+    ],
     title: {
       type: String,
       default: '',
-   
-     
     },
+
     itemDescription: {
       type: String,
-      default: '',
-      required: true
+      required: true,
     },
 
-    producttype: {
-      type: String,
-      default: '',
-      required: true
-    },
+ 
     category: {
       type: String,
-      default: '',
-      required: true
-    },
-    price: {
-      type: Number,
-      default: 0,
-      required: true
+      required: true,
     },
 
-    favouritecount: {
+    subcategory: {
+      type: String,
+      required: true,
+    },
+
+    price: {
       type: Number,
-      default: 0,
-      required: true
+      required: true,
+      default: 0
     },
 
     location: {
       type: String,
       default: '',
-     
     },
-    brand: {
-        type: String,
-        default: '',
-        require: true
-      },
-   
-      size: {
-        type: String,
-        default: '',
-        require: true
-      },
-      colour: {
-        type: String,
-        default: '',
-        require: true
-      },
-      condition: {
-        type: String,
-        default: '',
-        require: true
-      },
-      aproval: {
-        type: Boolean,
-        default: false,
-        require: true
-      },
-      purchased: {
-        type: Boolean,
-        default: false,
-        require: true
-      },
 
-      delivered: {
-        type: Boolean,
-        default: false,
-        require: true
-      },
+    viewCount: {
+      type: Number,
+      default: 0
+    },
 
-      dispatch: {
-        type: Boolean,
-        default: false,
-        require: true
-      },
-      deliverydate: {
-        type: String,
-        default: '',
-        require: true
-      },
+    attributes: {
+      type: Map,
+      of: String, // or 'Schema.Types.Mixed' if values might not be strings
+      default: {}
+    },
 
-      dispute: {
-        type: Boolean,
-        default: false,
-        require: true
-      },
+    // Marketplace control
+    approval: {
+      type: Boolean,
+      default: false
+    },
+    purchased: {
+      type: Boolean,
+      default: false
+    },
+    dispatch: {
+      type: Boolean,
+      default: false
+    },
+    delivered: {
+      type: Boolean,
+      default: false
+    },
+    deliveryDate: {
+      type: String,
+      default: ''
+    },
+    dispute: {
+      type: Boolean,
+      default: false
+    },
 
-      sellerdetails:{
-        type: Array,
-        default:[],
-      },
 
-      allusergoods:{
-        type:Array,
-        default:[]
-      }
   },
-
   {
     timestamps: true,
     minimize: false,
@@ -123,6 +92,6 @@ const Goodschema = mongoose.Schema(
 );
 
 const good = mongoose.model("good", Goodschema);
-
 module.exports = good;
+
 

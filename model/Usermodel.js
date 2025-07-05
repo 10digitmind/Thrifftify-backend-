@@ -130,6 +130,24 @@ const Userschmema = mongoose.Schema(
       type: Boolean,
       default: false,
     },
+    hasInsurance:{
+      type: Boolean,
+      default: false,
+    },
+    insurancePaidAt: {
+      type: Date,
+    },
+
+    isSubscribed: {
+      type: Boolean,
+      default: false,
+    },
+    subscriptionPaidAt: {
+      type: Date,
+    },
+    subscriptionExpiresAt: {
+      type: Date,
+    },
 
     contactType:{
       type:String,
@@ -150,6 +168,9 @@ const Userschmema = mongoose.Schema(
     lastLoginDate: { type: String }, 
    
   },
+
+ 
+  
 
   {
     timestamps: true,
