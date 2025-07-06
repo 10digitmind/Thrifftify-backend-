@@ -302,6 +302,6 @@ router.put("/api/users/update-store", protect, updateStore);
 
 router.get("/api/users/get-store/:userId", getStore);
 
-router.get("/api/users/confirm-subscription",protect, confirmSubscription);
+router.get("/api/users/confirm-subscription/:reference",protect, confirmSubscription);
 
 module.exports = router;

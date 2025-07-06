@@ -436,32 +436,32 @@ console.log(users.length)
     }
 
     for (const user of users) { 
-      const subject = "Please update your delivery fees🎉";
+      const subject = "We are back and better!!🎉";
       const send_to = user.email;
-      const send_from = process.env.EMAIL_USER;
+      const send_from = process.env.EMAIL_SENDER ;
       const reply_to = "noreply@thrifify.com";
-      const template = "userwithlistings."; // Ensure you have this template in your email system
+      const template = "generalnotification."; // Ensure you have this template in your email system
       const name = user.firstname;
 
-      // try {
-      //   await sendEmail(
-      //     subject,
-      //     send_to,
-      //     send_from,
-      //     reply_to,
-      //     null,
-      //     template,
-      //     name
-      //   );
+      try {
+        await sendEmail(
+          subject,
+          send_to,
+          send_from,
+          reply_to,
+          null,
+          template,
+          name
+        );
 
-      //   console.log(`📧 Eid message sent to: ${send_to}`);
-      //   console.log(send_to.length)
-      // } catch (error) {
-      //   console.error(
-      //     `❌ Failed to send Eid message to ${send_to}:`,
-      //     error.message
-      //   );
-      // }
+        console.log(`📧 Eid message sent to: ${send_to}`);
+        console.log(send_to.length)
+      } catch (error) {
+        console.error(
+          `❌ Failed to send Eid message to ${send_to}:`,
+          error.message
+        );
+      }
     }
 
   } catch (error) {

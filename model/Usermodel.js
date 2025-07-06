@@ -148,6 +148,10 @@ const Userschmema = mongoose.Schema(
     subscriptionExpiresAt: {
       type: Date,
     },
+    subscriptionPlan:{
+      type:String,
+      default:""
+    },
 
     contactType:{
       type:String,

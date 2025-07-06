@@ -666,7 +666,11 @@ const getUser = asyncHandler(async (req, res) => {
       contactType,
       username,
       online,
-      lastSeen
+      lastSeen,
+      subscriptionPlan,
+      subscriptionPaidAt,
+      subscriptionExpiresAt,
+      isSubscribed
     } = user;
 
     const passphrase = process.env.CRYPTO_JS
@@ -701,7 +705,11 @@ const getUser = asyncHandler(async (req, res) => {
       verificationRequested,
       contactType,
       online,
-      lastSeen
+      lastSeen,
+      subscriptionPlan,
+      subscriptionPaidAt,
+      subscriptionExpiresAt,
+      isSubscribed
     });
     console.log("User response sent successfully");
   } catch (error) {
@@ -3440,12 +3448,29 @@ const updateStore = async (req, res) => {
 };
 
 const getStore = async (req, res) => {
-  const {userId} = req.params
+  const { userId } = req.params;
 
   try {
-    console.log(req.params.id)
+    // Fetch store settings
     const store = await StoreSetting.findOne({ userId: userId });
-  
+
+    // Fetch user to check subscription status (assuming User model)
+    const user = await User.findById(userId);
+
+    if (!user) {
+      return res.status(404).json({ message: "User not found." });
+    }
+
+    // If user is not subscribed, remove bgImage, navbar, theme
+    if (!user.isSubscribed) {
+      if (store) {
+        // Remove or set these fields to null/undefined/empty string
+        store.bgImage = null;
+        store.bannerImage = null;
+        store.theme = null;
+      }
+    }
+
     res.status(200).json(store);
   } catch (error) {
     console.error(error);
@@ -3453,19 +3478,9 @@ const getStore = async (req, res) => {
   }
 };
 
-const ImageKit = require("imagekit");
-
-const imagekit = new ImageKit({
-  publicKey:'public_T8ek1QMyg40CArCIkMhkr+6l2Zk=',
-  privateKey: 'private_yLG/CmfU8HijQDMPc4Svy9qR1yA=',
-  urlEndpoint: "https://ik.imagekit.io/g7d7ghaa7",
-});
-
-const privateKey = 'private_yLG/CmfU8HijQDMPc4Svy9qR1yA='
-const publicKey ='public_T8ek1QMyg40CArCIkMhkr+6l2Zk='
 
 
-const auth = Buffer.from(`${privateKey}:`).toString('base64');
+
 
 
 
@@ -3628,7 +3643,7 @@ const createSubscription = async (req, res) => {
 
 
 const confirmSubscription = async (req, res) => {
-  const { reference } = req.query;
+  const reference = req.params.reference;
 
   try {
     const response = await axios.get(`https://api.paystack.co/transaction/verify/${reference}`, {
@@ -3638,6 +3653,7 @@ const confirmSubscription = async (req, res) => {
     });
 
     const data = response.data.data;
+    console.log(data);
 
     if (data.status === 'success') {
       const email = data.customer.email;
@@ -3654,18 +3670,34 @@ const confirmSubscription = async (req, res) => {
         user.isSubscribed = true;
         user.subscriptionPlan = plan;
         user.subscriptionExpiresAt = expiresAt;
+        user.subscriptionPaidAt = new Date();
+        
         await user.save();
       }
 
-      return res.redirect('/dashboard?payment=success');
+      // ✅ Send success response to frontend
+      return res.status(200).json({
+        success: true,
+        message: 'Subscription updated successfully',
+        plan,
+        expiresAt,
+      });
     } else {
-      return res.redirect('/subscribe?payment=failed');
+      return res.status(400).json({
+        success: false,
+        message: 'Payment verification failed or payment not successful',
+      });
     }
   } catch (error) {
     console.error('Verification error:', error.response?.data || error.message);
-    return res.redirect('/subscribe?payment=error');
+    return res.status(500).json({
+      success: false,
+      message: 'Server error during payment verification',
+      error: error.message,
+    });
   }
 };
+
 
 
 
