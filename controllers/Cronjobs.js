@@ -150,7 +150,7 @@ async function firstListingNotification(userId) {
       // Send email notification
       const subject = "congratulation on your firstlisting!";
       const send_to = user.email;
-      const send_from = process.env.EMAIL_USER;
+      const send_from = process.env.EMAIL_SENDER;
       const reply_to = "noreply@thritify.com";
       const template = "firstlisting."; // Removed period
       const name = user.firstname;
