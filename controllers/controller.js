@@ -3055,9 +3055,9 @@ const initChat = async (req, res) => {
     const item = await Good.findById(itemId);
     if (!item) return res.status(404).json({ error: 'Item not found' });
 
-    const sellerDetails = item.sellerdetails?.[0];
-    sellerId = sellerDetails?.sellerid;
-    sellerName = sellerDetails?.firstname;
+    const sellerUser = await user.findById(item.userId)
+    sellerId = item.userId
+    sellerName = sellerUser?.firstname;
   
     const participants = [buyerId, sellerId].sort();
     const roomId = `${itemId}_${participants[0]}_${participants[1]}`;
@@ -3074,7 +3074,7 @@ const initChat = async (req, res) => {
         buyerName,
         messages: [],
         itemTitle: item.title,
-        itemImageUrl: item.images?.[0],
+        itemImageUrl: item.images?.[0].url,
       });
       await chatroom.save();
     }
@@ -3567,6 +3567,7 @@ const uploadImage = async (req, res) => {
 
 
 const DeletedGoods = require('../model/DeletedGoodsSchema.js');
+const user = require("../model/Usermodel.js");
 
 
 
