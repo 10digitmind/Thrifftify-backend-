@@ -523,17 +523,23 @@ console.log(user)
   } catch (error) {
     console.error("❌ Failed to send admin alert:", error.message);
   }
-
   // Send user free trial notification
+
+  const subject = "Congratulations on your free trial";
+  const send_to = user.email;
+  const send_from = process.env.EMAIL_SENDER ;
+  const reply_to = "noreply@thrifify.com";
+  const template = "freeTrial."; // Ensure you have this template in your email system
+  const name = user.firstname;
   try {
     await sendEmail(
-      "🎉 Congratulations on Your Free Trial!",
-      user.email,
-      process.env.EMAIL_SENDER,
-      "noreply@thriftify.com",
+      subject,
+      send_to,
+      send_from,
+      reply_to,
       null,
-      "freeTrial.",
-      user.firstname
+      template,
+      name
     );
 
     console.log(`📧 Free trial email sent to: ${user.email}`);
