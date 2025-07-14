@@ -441,80 +441,6 @@ const sendVerifyEmail = asyncHandler(async (req, res) => {
       await sendEmail(subject, send_to, send_from, reply_to, null, template, name, link);
       return res.status(200).json({ message: "Verification email sent!" });
 
-    } else if (user.phone) {
-      let formattedPhoneNumber = user.phone.replace(/\D/g, ""); // Remove non-numeric characters
-      formattedPhoneNumber = `${formattedPhoneNumber}`;
-     
-      const data = {
-        to: formattedPhoneNumber,
-        from: "Thriftiffy",
-        sms: "Hi there, testing Termii ",
-        type: "plain",
-        api_key: process.env.TERMIL_API_KEY, // Ensure this is correctly set
-        channel: "generic"
-      };
-      
-      axios.post('https://v3.api.termii.com/api/sms/send', (data), {
-        headers: { 'Content-Type': 'application/json' }
-      })
-      .then(response => {
-        console.log("Response:", response);
-      })
-      .catch(error => {
-        console.error("Error:", error.response ? error.response.data : error.message);
-      });
- // Remove non-numeric characters
-        //  formattedPhoneNumber = `${formattedPhoneNumber}`;
-
-        //  await axios.post(
-        //   `https://graph.facebook.com/v22.0/${process.env.WHATSAPP_PHONE_ID}/messages`,
-        //   {
-        //     messaging_product: "whatsapp",
-        //     to: formattedPhoneNumber,
-        //     type: "template",
-        //     template: {
-        //       name: "verifyaccount",
-        //       language: {
-        //         code: "en_U"
-        //       },
-        //       components: [
-        //         {
-        //           type: "body",
-        //           parameters: [
-        //             { type: "text", text: user.firstname },
-        //             { type: "text", text: "your thriftiffy account" }
-        //           ]
-        //         },
-        //         {
-        //           type: "button",
-        //           sub_type: "url",
-        //           index: 0,
-        //           parameters: [
-        //             { type: "text", text: `verify/${verificationToken}` } // Static URL here
-        //           ]
-        //         }
-        //       ]
-        //     }
-        //   },
-        //   {
-        //     headers: {
-        //       Authorization: `Bearer ${process.env.WHATSAPP_TOKEN}`,
-        //       "Content-Type": "application/json"
-        //     }
-        //   }
-        // );
-        
-      
-
-
-
-
-
-   
-
-      return res.status(200).json({ message: "Verification message sent!" });
-    } else {
-      return res.status(400).json({ message: "No email or phone number provided!" });
     }
   } catch (error) {
     console.error("Error sending verification:", error);
@@ -534,7 +460,6 @@ const verifyUser = asyncHandler(async (req, res) => {
 
   const hashedtoken = hashToken(verificationToken);
 
-
   const userToken = await Token.findOne({
     verificationToken: hashedtoken,
     expiresAt: { $gt: Date.now() },
@@ -542,64 +467,85 @@ const verifyUser = asyncHandler(async (req, res) => {
 
   if (!userToken) {
     res.status(400);
-    throw new Error("invalid or expire token ");
+    throw new Error("Invalid or expired token");
   }
-  // find user
 
-  const user = await User.findOne({ _id: userToken.userId });
-
+  const user = await User.findById(userToken.userId);
+console.log(user)
+  if (!user) {
+    res.status(404);
+    throw new Error("User not found");
+  }
 
   if (user.isVerified) {
     res.status(400);
-    throw new Error("user already verify ");
+    throw new Error("User already verified");
   }
 
+  // Update user as verified and grant free trial
   user.isVerified = true;
+  const now = new Date();
+  const twoWeeksLater = new Date(now.getTime() + 14 * 24 * 60 * 60 * 1000);
+  user.isSubscribed = true;
+  user.subscriptionPaidAt = now;
+  user.subscriptionExpiresAt = twoWeeksLater;
+  user.subscriptionPlan = "Free Trial";
+
   await user.save();
 
-  const subject = "sign up alert";
-  const send_to = process.env.ADMIN_EMAIL;  // or item's seller email if you prefer
-  const send_from = process.env.EMAIL_SENDER ;
-  const reply_to = "noreply@thriftify.com";
-  const template = "signupalert.";  // a template key if you're using one
-  const name = user.username; // or buyer name if applicable
-  const email = user.email
- 
- 
+  // Delete used token
+  await Token.deleteOne({ _id: userToken._id });
 
+  // Send admin alert
   try {
     await sendEmail(
-      subject,
-      send_to,
-        send_from,
-        reply_to,
-        null,
-        template,
-        name,
-        null,
-        null,
-        null,
-        null,
-        null,
-        null,
-        null,
-        null,
-        null,
-        null,
-     email
+      "New Signup Alert",
+      process.env.ADMIN_EMAIL,
+      process.env.EMAIL_SENDER,
+      "noreply@thriftify.com",
+      null,
+      "signupAlert",
+      user.username,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      user.email
     );
-    console.log(`Checkout alert sent to admin: ${send_to}`);
-  } catch (emailError) {
-    console.error("Failed to send checkout alert:", emailError.message);
-    // Don't block checkout if email fails — just log it.
+
+    console.log(`✅ Signup alert sent to admin: ${process.env.ADMIN_EMAIL}`);
+  } catch (error) {
+    console.error("❌ Failed to send admin alert:", error.message);
   }
 
+  // Send user free trial notification
+  try {
+    await sendEmail(
+      "🎉 Congratulations on Your Free Trial!",
+      user.email,
+      process.env.EMAIL_SENDER,
+      "noreply@thriftify.com",
+      null,
+      "freeTrial",
+      user.firstname
+    );
 
+    console.log(`📧 Free trial email sent to: ${user.email}`);
+  } catch (error) {
+    console.error("❌ Failed to send free trial email:", error.message);
+  }
 
   res
     .status(200)
-    .json({ message: "Account verification sucessfull, please login;  " });
+    .json({ message: "Account verification successful. Please log in." });
 });
+
 
 //logout user
 const logoutUser = asyncHandler(async (req, res) => {

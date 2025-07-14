@@ -436,7 +436,7 @@ console.log(users.length)
     }
 
     for (const user of users) { 
-      const subject = "Please Uplaod your item back 🎉";
+      const subject = "Buyers are waiting. List your first item today.";
       const send_to = user.email;
       const send_from = process.env.EMAIL_SENDER ;
       const reply_to = "noreply@thrifify.com";
@@ -545,23 +545,61 @@ const postRandomTweet = async () => {
 
 
 
-async function giveReview() {
+async function freeSubForNewUser() {
   try {
-    console.log("🔄 Checking users with more than one listing...");
+    console.log("🔄 Granting free 2-week subscription to eligible users...");
 
-    // Find all verified users
-    const users = await User.find({ isVerified: true });
-let totalUser= []
-    for (const user of users){
-totalUser.push(user)
+    // Find all verified users who haven't subscribed yet
+    const users = await User.find({
+      isVerified: true,
+      isSubscribed: false,
+      subscriptionPaidAt: { $exists: false }, // or $eq: null
+    });
+
+    const now = new Date();
+    const twoWeeksLater = new Date(now.getTime() + 14 * 24 * 60 * 60 * 1000);
+
+    for (const user of users) {
+      user.isSubscribed = true;
+      user.subscriptionPaidAt = now;
+      user.subscriptionExpiresAt = twoWeeksLater;
+      user.subscriptionPlan = "Free Trial";
+
+      await user.save();
+      const subject = "Congratulations on your free trial";
+      const send_to = user.email;
+      const send_from = process.env.EMAIL_SENDER ;
+      const reply_to = "noreply@thrifify.com";
+      const template = "freeTrial."; // Ensure you have this template in your email system
+      const name = user.firstname;
+      try {
+        await sendEmail(
+          subject,
+          send_to,
+          send_from,
+          reply_to,
+          null,
+          template,
+          name
+        );
+
+        console.log(`📧 free trial message sent to: ${send_to}`);
+        console.log(send_to.length)
+      } catch (error) {
+        console.error(
+          `❌ Failed to send Eid message to ${send_to}:`,
+          error.message
+        );
+      }
     }
-console.log(totalUser.length)
 
+    console.log(`✅ Free trial granted to ${users.length} user(s).`);
   } catch (error) {
-    console.error("❌ Error running first listing notification:", error.message);
+    console.error("❌ Error granting free subscriptions:", error.message);
   }
 }
-giveReview()
+
+
 
 
 module.exports = {
