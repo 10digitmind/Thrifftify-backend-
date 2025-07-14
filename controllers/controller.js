@@ -504,7 +504,7 @@ console.log(user)
       process.env.EMAIL_SENDER,
       "noreply@thriftify.com",
       null,
-      "signupAlert.",
+      "signupalert.",
       user.username,
       null,
       null,
