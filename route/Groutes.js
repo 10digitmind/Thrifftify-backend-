@@ -96,7 +96,8 @@ const {
   updateStore,
   getStore,
   uploadImage,
-  confirmSubscription
+  confirmSubscription,
+  createWaitingList
 
 } = require("../controllers/controller");
 
@@ -303,5 +304,7 @@ router.put("/api/users/update-store", protect, updateStore);
 router.get("/api/users/get-store/:userId", getStore);
 
 router.get("/api/users/confirm-subscription/:reference",protect, confirmSubscription);
+
+router.post("/api/users/createlist", createWaitingList);
 
 module.exports = router;

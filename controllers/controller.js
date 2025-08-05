@@ -17,6 +17,7 @@ const CouponUsage =require("../model/Couponuseagemodel.js");
 const DeletedUser = require('../model/DeletedUser.js')
 const Delivery = require('../model/deliverySchema.js');
 const StoreSetting = require('../model/StoreSetting.js');
+const WaitingList = require('../model/CampusTilesWaitingList.js');
 const BuyerInterest = require('../model/BuyerInterets.js')
 
 const Chat = require('../model/chatRoomSchema.js')
@@ -3656,7 +3657,28 @@ const confirmSubscription = async (req, res) => {
 
 
 
+const createWaitingList = async (req, res) => {
+  try {
+    const { userName,email,phoneNumber } = req.body; // 'monthly' or 'yearly'
 
+    if (!userName && !email && !phoneNumber ) {
+      return res.status(400).json({ error: 'All details is rquired' });
+    }
+
+    const createlist = await new WaitingList ({
+      userName:userName,
+      email:email,
+      phoneNumber:phoneNumber
+    }).save()
+    // Assuming user ID is in req.user.id from your auth middleware
+  
+
+    return res.json({ message:"you've join the waiting list succesccefully " });
+  } catch (error) {
+    console.error('Error:', error.response?.data || error.message);
+    res.status(500).json({ error: 'Failed to add to the waiting list' });
+  }
+};
 
 
 module.exports = {
@@ -3723,7 +3745,8 @@ module.exports = {
   getStore,
   uploadImage,
   confirmSubscription,
-  confirmSubscription
+  confirmSubscription,
+  createWaitingList
 
 };
 
