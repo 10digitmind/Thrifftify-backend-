@@ -163,7 +163,7 @@ const loginUser = asyncHandler(async (req, res) => {
     const { emailOrPhone, password } = req.body;
 
     // Validation
-    if (!emailOrPhone || !password) {
+    if (!emailOrPhone && !password) {
       return res.status(400).json("Please provide email/phone and password");
     }
 
@@ -1321,7 +1321,7 @@ const Paymentverification = asyncHandler(async (req, res) => {
   const { reference } = req.query;
 
   if (!reference) {
-    return res.status(400).send("Reference is required");
+    return res.status(400).json({ message: "Reference is required" });
   }
 
   try {
@@ -1338,187 +1338,213 @@ const Paymentverification = asyncHandler(async (req, res) => {
     const { status, data } = response.data;
 
     if (!status) {
-      return res.status(404).json({
-        message: "Invalid transaction reference",
-      });
+      return res.status(404).json({ message: "Invalid transaction reference" });
     }
 
     if (data.status === "success") {
-
- // this is a JSON string
-      const metadata = typeof data.metadata === 'string' ? JSON.parse(data.metadata) : data.metadata;
-      console.log('metadat json:',metadata)
-
-   
-      const itemId = metadata.itemId;
-      const buyerId = metadata.buyerId;
-      const sellerId = metadata.sellerid;
-      const couponCodes = metadata.couponCode || []; // get coupon if passed
-      const amount = metadata.finalAmount;
-     
-      const item = await Good.findById(itemId);
-      const order = await Order.findById(buyerId);
-
-      if (!item) {
-        return res.status(404).json({ message: 'Item not found' });
+      // Safely parse metadata (can be string or object)
+      let metadata;
+      if (typeof data.metadata === "string") {
+        try {
+          metadata = JSON.parse(data.metadata);
+        } catch {
+          return res.status(400).json({ message: "Invalid metadata format" });
+        }
+      } else {
+        metadata = data.metadata;
       }
-    
-      // Mark item as purchased
+
+      const {
+        itemId,
+        buyerId,
+        sellerid: sellerId,
+        couponCode: couponCodes = [],
+        finalAmount: amount,
+        itemPrice,
+        buyerEmail,
+        sellerName,
+        buyerName,
+        itemName,
+        buyerAddress,
+        sellerEmail,
+        phoneNumber,
+      } = metadata;
+
+      // Validate essential IDs
+      if (!itemId || !buyerId || !sellerId) {
+        return res.status(400).json({ message: "Missing essential metadata fields" });
+      }
+
+      // Fetch item
+      const item = await Good.findById(itemId);
+      if (!item) {
+        return res.status(404).json({ message: "Item not found" });
+      }
+
+      // Fetch buyer
+      const buyer = await User.findById(buyerId);
+      if (!buyer) {
+        return res.status(404).json({ message: "Buyer not found" });
+      }
+
+      // Fetch seller
+      const seller = await User.findById(sellerId);
+      if (!seller) {
+        return res.status(404).json({ message: "Seller not found" });
+      }
+
+      // Mark item as purchased and update price
       item.purchased = true;
-      item.price = Number(metadata.itemPrice);
+      item.price = Number(itemPrice);
+      if (isNaN(item.price)) {
+        return res.status(400).json({ message: "Invalid item price" });
+      }
       await item.save();
 
-    
-      // Update buyer details
-      const buyerdetails = await User.findById(buyerId);
-      if (!buyerdetails) {
-        return res.status(400).json({ message: "Can't find buyer" });
-      }
-    
-      buyerdetails.pendingPurchasedAmount += amount;
-      await buyerdetails.save();  const sellerdetails = await User.findById(sellerId);
+      // Update buyer's pendingPurchasedAmount
+      buyer.pendingPurchasedAmount += amount;
+      await buyer.save();
 
-      // seller datails
-      if (!sellerdetails) {
-        return res.status(400).json("Can't find seller");
-      }
-      const itemPrice = Number(metadata.itemPrice) 
+      // Calculate seller earnings (10% company fee + ₦120 transaction fee)
+      const companyFee = item.price * 0.10;
+      const transactionFee = 120;
+      const sellerEarnings = item.price - companyFee - transactionFee;
 
-      if (isNaN(itemPrice)) {
-        return res.status(400).json({ message: "Invalid item price provided" });
-      }
+      // Update seller's pendingSoldAmount
+      seller.pendingSoldAmount += sellerEarnings;
+      await seller.save();
 
-      const companyFee = itemPrice * 0.10;
-const transactionFee = 120;
-const sellerEarnings = itemPrice - companyFee - transactionFee;
+      // Check if order already exists for this buyer and item
+      let order = await Order.findOne({
+        buyer: buyerId,
+        orderitems: item._id,
+      });
 
-      sellerdetails.pendingSoldAmount +=sellerEarnings
-      await sellerdetails.save();
+      console.log('order',order)
 
-         // Save order
-         const newOrder = new Order({
+      let isNewOrder = false;
+
+      if (!order) {
+        order = new Order({
           buyer: buyerId,
           orderitems: item,
           purchased: true,
         });
-        await newOrder.save();
-      
-        // ✅ If coupon was passed, verify and log usage
-        // ✅ If coupon was passed, verify and log usage
-        if (Array.isArray(couponCodes) && couponCodes.length > 0) {
-          for (const code of couponCodes) {
-            const coupon = await Coupon.findOne({ code });
-        
-            if (coupon) {
-              const isExpired = new Date() > coupon.expiryDate;
-              const isUsageLimitReached = coupon.usedCount >= coupon.usageLimit;
-        
-              const perUserUsageCount = await CouponUsage.countDocuments({
-                userId: buyerId,
-                couponCode: code
-              });
-        
-              const isPerUserLimitReached =
-                coupon.perUserLimit && perUserUsageCount >= coupon.perUserLimit;
-        
-              if (
-                coupon.isActive &&
-                !isExpired &&
-                !isUsageLimitReached &&
-                !isPerUserLimitReached
-              ) {
-                // Increment usage count
-                coupon.usedCount += 1;
-                await coupon.save();
-        
-                // Log usage
-                await CouponUsage.create({
-                  userId: buyerId,
-                  couponCode: code,
-                  amountApplied: coupon.discountValue,
-                  orderId: newOrder._id,
-                });
-              }
-            }
+        await order.save();
+        isNewOrder = true;
+      }else{
+        return res.status(409).json({
+          message: "Order already exists for this buyer",
+        });
+      }
+
+      // Process coupon codes if any
+      if (Array.isArray(couponCodes) && couponCodes.length > 0) {
+        for (const code of couponCodes) {
+          const coupon = await Coupon.findOne({ code });
+          if (!coupon) continue;
+
+          const isExpired = new Date() > coupon.expiryDate;
+          const isUsageLimitReached = coupon.usedCount >= coupon.usageLimit;
+          const perUserUsageCount = await CouponUsage.countDocuments({
+            userId: buyerId,
+            couponCode: code,
+          });
+          const isPerUserLimitReached =
+            coupon.perUserLimit && perUserUsageCount >= coupon.perUserLimit;
+
+          if (
+            coupon.isActive &&
+            !isExpired &&
+            !isUsageLimitReached &&
+            !isPerUserLimitReached
+          ) {
+            coupon.usedCount += 1;
+            await coupon.save();
+
+            await CouponUsage.create({
+              userId: buyerId,
+              couponCode: code,
+              amountApplied: coupon.discountValue,
+              orderId: order._id,
+            });
           }
         }
-      
-        const template = "buyerpurchased.";
-        const reply_to = "noreply@thritify.com";
-        const send_from = process.env.EMAIL_SENDER;
-        const subject = "Item successfully purchased";
-        const send_to = metadata.buyerEmail;
-        const sellername = metadata.sellerName;
-        const buyername = metadata.buyerName;
-        const itemname = metadata.itemName;
-        const itemprice = metadata.itemPrice;
-        const deliverydate = item.deliverydate;
-        const buyeraddress = metadata.buyerAddress;
-        const cc = process.env.ADMIN_EMAIL;
-        
+      }
 
+      // Prepare email details
+      const send_from = process.env.EMAIL_SENDER;
+      const reply_to = "noreply@thritify.com";
+      const cc = process.env.ADMIN_EMAIL;
+
+      // Send email only if new order was created
+      if (isNewOrder) {
+        // Buyer email
         await sendEmail(
-          subject,
-          send_to,
+          "Item successfully purchased",
+          buyerEmail,
           send_from,
           reply_to,
           cc,
-          template,
+          "buyerpurchased.",
           null,
           null,
-          buyername,
-          itemname,
-          sellername,
+          buyerName,
+          itemName,
+          sellerName,
           null,
           null,
           null,
           null,
           null,
-          deliverydate
+          item.deliveryDate
         );
 
+        // Encrypt seller email
+        let encryptedSellerEmail = "";
+        if (sellerEmail) {
+          const passphrase = process.env.CRYPTO_JS;
+          const bytes = CryptoJS.AES.decrypt(sellerEmail.toString(), passphrase);
+          encryptedSellerEmail = bytes.toString(CryptoJS.enc.Utf8);
+        }
+
         // Seller email
-        const sellerTemplate = "sellerpurchased.";
-        const sellerSubject = "Your item has been purchased";
-        const sellerEmail = metadata.sellerEmail;
-        const phonenumber = metadata.phoneNumber;
-        const deliveryformurl = `${process.env.FRONTEND_USER}/deliveryform/${newOrder._id}/${itemname}`;
-        const sellercc = "purchased@thriftiffy.com";
-        const platformCommission = itemprice * 0.10;
-        const paystackFee = 120;
-        const finalPayment = itemprice - platformCommission - paystackFee;
+        const deliveryFormUrl = `${process.env.FRONTEND_USER}/deliveryform/${order._id}/${itemName}`;
+        const platformCommission = item.price * 0.10;
+        const finalPayment = item.price - platformCommission - transactionFee;
 
         await sendEmail(
-          sellerSubject,
-          sellerEmail,
+          "Your item has been purchased",
+          encryptedSellerEmail,
           send_from,
           reply_to,
-          sellercc,
-          sellerTemplate,
+          "purchased@thriftiffy.com",
+          "sellerpurchased.",
           null,
           null,
-          buyername,
+          buyerName,
           finalPayment,
-          sellername,
-          itemname,
-          buyeraddress,
-          phonenumber,
-          deliveryformurl,
+          sellerName,
+          itemName,
+          buyerAddress,
+          phoneNumber,
+          deliveryFormUrl,
           null,
           null
         );
+      }
 
       return res.status(200).json({
         status: "success",
         message: "Payment verified successfully",
         data,
       });
-      
     }
 
     if (data.status === "abandoned") {
-      return res.status(404).json({
-        message: "Transaction has been abandoned, go back to payment page to complete payment",
+      return res.status(400).json({
+        message:
+          "Transaction has been abandoned, go back to payment page to complete payment",
         data,
       });
     }
@@ -1534,7 +1560,6 @@ const sellerEarnings = itemPrice - companyFee - transactionFee;
       message: `Unexpected transaction status: ${data.status}`,
       data,
     });
-
   } catch (error) {
     console.error("Error verifying payment:", {
       message: error.message,
@@ -1550,10 +1575,11 @@ const sellerEarnings = itemPrice - companyFee - transactionFee;
 
     return res.status(500).json({
       error: "An unexpected server error occurred",
-      message: error.message
+      message: error.message,
     });
   }
 });
+
 
 
 // get orders 
