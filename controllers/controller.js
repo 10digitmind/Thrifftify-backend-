@@ -1371,7 +1371,7 @@ const Paymentverification = asyncHandler(async (req, res) => {
       } = metadata;
 
       // Validate essential IDs
-      if (!itemId || !buyerId || !sellerId) {
+      if (!itemId && !buyerId && !sellerId) {
         return res.status(400).json({ message: "Missing essential metadata fields" });
       }
 
@@ -1417,10 +1417,10 @@ const Paymentverification = asyncHandler(async (req, res) => {
       // Check if order already exists for this buyer and item
       let order = await Order.findOne({
         buyer: buyerId,
-        orderitems: item._id,
+        orderitems: item.id,
       });
 
-      console.log('order',order)
+
 
       let isNewOrder = false;
 
@@ -1731,10 +1731,8 @@ const ConfirmDelivery = asyncHandler(async (req, res) => {
   const { itemid } = req.params;
 
   try {
-    const Purchaseditem = await Order.findById(itemid).populate(
-      "orderitems.sellerdetails.sellerid"
-    );
-
+    const Purchaseditem = await Order.findById(itemid)
+console.log(Purchaseditem)
     if (!Purchaseditem) {
       return res.status(404).json("Purchased item not found");
     }
@@ -1769,9 +1767,9 @@ const ConfirmDelivery = asyncHandler(async (req, res) => {
     await purchasedgoods.save();
 
     // Find seller info and update amounts
-    const sellerDetails = Purchaseditem.orderitems[0].sellerdetails[0];
-    const sellerid = sellerDetails.sellerid;
-    const selleremail = sellerDetails.email;
+
+    const sellerid = purchasedgoods.userId;
+  
 
     if (!sellerid) {
       return res.status(404).json("Can't find seller ID");
@@ -1812,9 +1810,9 @@ const ConfirmDelivery = asyncHandler(async (req, res) => {
     await review.save();
     // Send email notification
     const template = "confirmdelivery.";
-    const send_to = selleremail;
+    const send_to = Getsellerinfo.email;
     const subject = `Your item ${Purchaseditem.orderitems[0].title} has been delivered`;
-    const name = sellerDetails.firstname;
+    const name = Getsellerinfo.firstname;
     const itemprice = Purchaseditem.orderitems[0].price;
 
     const sent_from = process.env.EMAIL_SENDER;
@@ -1892,6 +1890,8 @@ const ConfirmDelivery = asyncHandler(async (req, res) => {
     });
   }
 });
+
+
 
 // dispute delivery
 const Disputedelivery = asyncHandler(async (req, res) => {
