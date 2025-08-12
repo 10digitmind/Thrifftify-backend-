@@ -2725,14 +2725,16 @@ const checkoutItem = asyncHandler(async (req, res) => {
     const { itemId } = req.params;
 
     // Fetch the item by itemId
-    const item = await Good.findById(itemId);
+    const item = await Good.findOneAndUpdate(
+      { _id: itemId, purchased: false },
+      { $inc: { viewCount: 1 } },
+      { new: true }
+    );
     if (!item) {
       return res.status(404).json({ message: 'Item not available or already sold.' });
     }
 
-    if (item.purchased) {
-      return res.status(400).json({ message: 'Item is no longer available for purchase.' });
-    }
+  
 
   // Send email notification to admin (or seller, depending on your flow)
    
@@ -2771,8 +2773,7 @@ const checkoutItem = asyncHandler(async (req, res) => {
     //    console.error("Failed to send checkout alert:", emailError.message);
     //    // Don't block checkout if email fails — just log it.
     //  }
-
-   
+      
     res.status(200).json(item);
 
   } catch (error) {
