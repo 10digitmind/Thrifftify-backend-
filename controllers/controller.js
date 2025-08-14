@@ -52,7 +52,7 @@ const { OAuth2Client } = require('google-auth-library');
 const { json } = require("body-parser");
 const client = new OAuth2Client('YOUR_GOOGLE_CLIENT_ID');
 const Chatroom = require('../model/chatRoomSchema');
-
+const mongoose = require('mongoose');
 const { v4: uuidv4 } = require('uuid');
 //-------------utilities functions
 // genrate toeken function
@@ -1609,7 +1609,7 @@ const UpdatePurchasedItem = asyncHandler(async (req, res) => {
   } = req.body;
 
   // getting purchased order
-  const purchasedItem = await Order.findById({ _id: itemid });
+  const purchasedItem = await Order.findOne({ 'orderitems._id': itemid });
 
   try {
     if (!purchasedItem) {
@@ -1731,8 +1731,8 @@ const ConfirmDelivery = asyncHandler(async (req, res) => {
   const { itemid } = req.params;
 
   try {
-    const Purchaseditem = await Order.findById(itemid)
-console.log(Purchaseditem)
+    const Purchaseditem = await Order.findOne({'orderitems._id':new mongoose.Types.ObjectId(itemid)})
+
     if (!Purchaseditem) {
       return res.status(404).json("Purchased item not found");
     }
@@ -1746,10 +1746,13 @@ console.log(Purchaseditem)
     if (Purchaseditem.delivered) {
       return res.status(400).json("Order item has already been delivered");
     }
-
-    // Mark the Purchaseditem as delivered
-    Purchaseditem.delivered = true;
+   
+    
+    Purchaseditem.delivered = true; // mark entire order delivered if you want
     await Purchaseditem.save();
+
+    console.log(Purchaseditem)
+    
 
     const getgoodsid = Purchaseditem.orderitems[0]._id;
     const purchasedgoods = await Good.findById(getgoodsid);
@@ -2773,7 +2776,7 @@ const checkoutItem = asyncHandler(async (req, res) => {
     //    console.error("Failed to send checkout alert:", emailError.message);
     //    // Don't block checkout if email fails — just log it.
     //  }
-      
+
     res.status(200).json(item);
 
   } catch (error) {
@@ -3708,6 +3711,56 @@ const createWaitingList = async (req, res) => {
 };
 
 
+
+
+
+
+const recentOrders = async (req, res) => {
+  try {
+    const { sellerId } = req.params;
+    const limit = 5;
+
+    if (!sellerId) {
+      return res.status(400).json({ error: 'Seller Id required' });
+    }
+
+    // Fetch orders and populate item details
+  
+let orders = await Order.find({
+  'orderitems.userId': new mongoose.Types.ObjectId(sellerId),
+})
+.populate('orderitems.itemId', 'title price') // <-- populate the correct ref field
+.sort({ createdAt: -1 });
+
+
+let deliveredItems = orders
+.filter(order => order.delivered === true) // check order-level delivered
+.flatMap(order =>
+  order.orderitems
+    .filter(item => item.userId.toString() === sellerId)
+    .map(item => ({
+      title: item.title,
+      price: item.price,
+      date: order.createdAt
+    }))
+);
+
+
+    // Limit results
+    deliveredItems = deliveredItems.slice(0, limit);;
+
+    return res.json({
+      success: true,
+      sales: deliveredItems
+    });
+  } catch (error) {
+    console.error('Error:', error.message);
+    res.status(500).json({ error: 'Failed to fetch recent sales' });
+  }
+};
+
+
+
 module.exports = {
   createUser,
   getUser,
@@ -3773,7 +3826,8 @@ module.exports = {
   uploadImage,
   confirmSubscription,
   confirmSubscription,
-  createWaitingList
+  createWaitingList,
+  recentOrders
 
 };
 

@@ -97,7 +97,8 @@ const {
   getStore,
   uploadImage,
   confirmSubscription,
-  createWaitingList
+  createWaitingList,
+  recentOrders
 
 } = require("../controllers/controller");
 
@@ -304,6 +305,10 @@ router.put("/api/users/update-store", protect, updateStore);
 router.get("/api/users/get-store/:userId", getStore);
 
 router.get("/api/users/confirm-subscription/:reference",protect, confirmSubscription);
+
+router.get("/api/users/recent-orders/:sellerId/",protect, recentOrders);
+
+
 
 router.post("/api/users/createlist", createWaitingList);
 
