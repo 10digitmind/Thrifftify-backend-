@@ -1609,7 +1609,9 @@ const UpdatePurchasedItem = asyncHandler(async (req, res) => {
   } = req.body;
 
   // getting purchased order
-  const purchasedItem = await Order.findOne({ 'orderitems._id': itemid });
+  const purchasedItem = await Order.findOne({ "_id": itemid.toString() });
+
+
 
   try {
     if (!purchasedItem) {
@@ -1730,8 +1732,9 @@ const Trackpurchaseditem = asyncHandler(async (req, res) => {
 const ConfirmDelivery = asyncHandler(async (req, res) => {
   const { itemid } = req.params;
 
+
   try {
-    const Purchaseditem = await Order.findOne({'orderitems._id':new mongoose.Types.ObjectId(itemid)})
+    const Purchaseditem =  await Order.findOne({ "_id": itemid.toString() });
 
     if (!Purchaseditem) {
       return res.status(404).json("Purchased item not found");
@@ -3739,7 +3742,7 @@ let deliveredItems = orders
   order.orderitems
     .filter(item => item.userId.toString() === sellerId)
     .map(item => ({
-      title: item.title,
+      name: item.title,
       price: item.price,
       date: order.createdAt
     }))
